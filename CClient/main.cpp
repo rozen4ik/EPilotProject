@@ -1,8 +1,11 @@
 #include <iostream>
+#include "pilot_nt.h"
 
 int main()
 {
-	std::cout << "Hello World!" << std::endl;
+	setlocale(LC_ALL, "");
+	TestPinpad();
+    
 	std::system("pause");
 	return 0;
 }
