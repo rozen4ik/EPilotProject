@@ -78,6 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -95,6 +96,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,7 +142,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="base64.h" />
-    <ClInclude Include="cmd_getready.h" />
+    <ClInclude Include="cmd_msb.h" />
+    <ClInclude Include="CommunicationWithSber.h" />
     <ClInclude Include="com_port.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="PacketProcessing.h" />
@@ -151,7 +154,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
-    <ClCompile Include="cmd_getready.cpp" />
+    <ClCompile Include="cmd_msb.cpp" />
+    <ClCompile Include="CommunicationWithSber.cpp" />
     <ClCompile Include="com_port.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="PacketProcessing.cpp" />

@@ -33,13 +33,16 @@
     <ClInclude Include="resource.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="cmd_getready.h">
+    <ClInclude Include="cmd_msb.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="PacketProcessing.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="base64.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="CommunicationWithSber.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,13 +59,16 @@
     <ClCompile Include="com_port.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_getready.cpp">
+    <ClCompile Include="cmd_msb.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="PacketProcessing.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="base64.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="CommunicationWithSber.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
