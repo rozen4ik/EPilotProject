@@ -11,6 +11,6 @@
 #pragma comment(lib, "ws2_32.lib")
 
 DWORD WINAPI openTCP(WSADATA& WSAData, SOCKET& server, SOCKADDR_IN& addr, LPCWSTR& ip, int& port);
-DWORD WINAPI clientReceive(LPVOID lpParam);
-DWORD WINAPI clientSend(LPVOID lpParam);
-DWORD WINAPI closeTCP(SOCKET& server, HANDLE& t1, HANDLE& t2);
+DWORD WINAPI readTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff);
+DWORD WINAPI writeTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff);
+DWORD WINAPI closeTCP(SOCKET& server);

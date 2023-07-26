@@ -21,59 +21,78 @@ DWORD WINAPI openTCP(WSADATA& WSAData, SOCKET& server, SOCKADDR_IN& addr, LPCWST
 	}
 
 	std::cout << "Connected to server!" << std::endl;
-	std::cout << "Now you can use our live chat application. " << " Enter \"exit\" to disconnect" << std::endl;
 	return 0;
 }
 
-DWORD WINAPI clientReceive(LPVOID lpParam) 
-{ //Получение данных от сервера
-	char buffer[1024] = { 0 };
-	SOCKET server = *(SOCKET*)lpParam;
-	while (true) 
-	{
-		if (recv(server, buffer, sizeof(buffer), 0) == SOCKET_ERROR) 
-		{
-			std::cout << "recv function failed with error: " << WSAGetLastError() << std::endl;
-			return -1;
-		}
-		if (strcmp(buffer, "exit\n") == 0) 
-		{
-			std::cout << "Server disconnected." << std::endl;
-			return 1;
-		}
-		std::cout << "Server: " << buffer << std::endl;
-		memset(buffer, 0, sizeof(buffer));
-	}
-	return 1;
-}
+//Получение данных от сервера
+DWORD WINAPI readTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff) 
+{ 
+	int iResult;
+	char* buff = new char[sizeBuff];
 
-DWORD WINAPI clientSend(LPVOID lpParam) 
-{ //Отправка данных на сервер
-	char buffer[1024] = { 0 };
-	SOCKET server = *(SOCKET*)lpParam;
-	while (true) 
+	iResult = recv(server, buff, sizeBuff, 0);
+	if (iResult == SOCKET_ERROR)
 	{
-		fgets(buffer, 1024, stdin);
-		if (send(server, buffer, sizeof(buffer), 0) == SOCKET_ERROR) 
-		{
-			std::cout << "send failed with error: " << WSAGetLastError() << std::endl;
-			return -1;
-		}
-		if (strcmp(buffer, "exit") == 0) 
-		{
-			std::cout << "Thank you for using the application" << std::endl;
+		std::cout << "recv function failed with error: " << WSAGetLastError() << std::endl;
+		return 1;
+	}
+	if (iResult == 0)
+	{
+		std::cout << "Server disconnected." << std::endl;
+		return 1;
+	}
+
+	iResult = 0;
+	//iResult = shutdown(server, SD_SEND);
+
+	for (int i = 0; i < sizeBuff; i++)
+	{
+		if (buff[i] == 0xFFFFFFCD)
 			break;
-		}
+		buffer.push_back(buff[i]);
 	}
-	return 1;
+
+	memset(buff, 0, sizeBuff);
+	delete [] buff;
+	buff = nullptr;
+
+	return 0;
 }
 
-DWORD WINAPI closeTCP(SOCKET& server, HANDLE& t1, HANDLE& t2)
+//Отправка данных на сервер
+DWORD WINAPI writeTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff)
+{ 
+	int iResult;
+	std::string str(buffer.begin(), buffer.end());
+	//char *buff = &str[0];
+	std::cout << "Size -> " << str.size() << std::endl;
+	std::cout << "-> " << str << std::endl;
+	for (char c : buffer)
+	{
+		std::cout << std::hex << std::uppercase << int(c) << " ";
+	}
+	std::cout << std::endl;
+
+	iResult = send(server, &str[0], (int) strlen(&str[0]), 0);
+	std::cout << "Count byte -> " << iResult << std::endl;
+	if (iResult == SOCKET_ERROR)
+	{
+		std::cout << "send failed with error: " << WSAGetLastError() << std::endl;
+		return 1;
+	}
+
+	iResult = 0;
+	//iResult = shutdown(server, SD_SEND);
+
+	return 0;
+}
+
+DWORD WINAPI closeTCP(SOCKET& server)
 {
-	WaitForSingleObject(t1, INFINITE);
-	WaitForSingleObject(t2, INFINITE);
 	closesocket(server);
 	WSACleanup();
+
+	std::cout << "Server disconnected." << std::endl;
 
 	return 0;
 }

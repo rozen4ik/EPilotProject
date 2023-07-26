@@ -17,8 +17,6 @@ int TestPinpad()
 	GetFrameWithCrc16(frame);
 
 	std::string resFrame = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";	
-	std::cout << resFrame << std::endl;
-	
 	ioPort(resFrame, outData);
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
@@ -38,7 +36,6 @@ int close_day(auth_answer* auth_answer)
 	GetFrameWithCrc16(frame);
 
 	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-	std::cout << resFrame << std::endl;
 
 	ioPort(resFrame, outData);
 

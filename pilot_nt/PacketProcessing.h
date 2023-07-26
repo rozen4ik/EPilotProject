@@ -21,4 +21,6 @@ void ioPort(std::string& inData, std::string& outData);
 std::string GetIp(std::vector<unsigned char>& response);
 int GetPort(std::vector<unsigned char>& response);
 void GetSerialNumberMessage(std::vector<unsigned char>& response, std::vector<unsigned char>& serialNumber);
+int GetSizeBuff(std::vector<unsigned char>& response);
+void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::vector<char>& inDataTCP);
 void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response);
