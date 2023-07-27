@@ -64,8 +64,8 @@ void read_port(HANDLE* hSerial, std::string& data)
         BOOL iRet = ReadFile(*hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
         if (iSize > 0)   // если что-то принято, выводим
         {
-            data += sReceivedChar; 
-        }                   
+            data += sReceivedChar;
+        }
         else if (sReceivedChar == '\u0003')
             break;
     }

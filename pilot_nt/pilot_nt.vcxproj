@@ -151,6 +151,7 @@
     <ClInclude Include="pilot_nt.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="sber_tcp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
@@ -166,6 +167,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="sber_tcp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pilot_nt.rc" />

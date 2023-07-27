@@ -4,8 +4,15 @@
 
 DWORD WINAPI openTCP(WSADATA& WSAData, SOCKET& server, SOCKADDR_IN& addr, LPCWSTR& ip, int& port)
 {
+	WSADATA w{};
+	WSAData = w;
+	SOCKET s = 0;
+	server = s;
+	int iResult;
 	WSAStartup(MAKEWORD(2, 0), &WSAData);
-	if ((server = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+	server = server = socket(AF_INET, SOCK_STREAM, 0);
+	std::cout << "Value server: " << server << std::endl;
+	if (server == INVALID_SOCKET)
 	{
 		std::cout << "Socket creation failed with error: " << WSAGetLastError() << std::endl;
 		return 1;
@@ -14,7 +21,8 @@ DWORD WINAPI openTCP(WSADATA& WSAData, SOCKET& server, SOCKADDR_IN& addr, LPCWST
 	InetPton(AF_INET, ip, &addr.sin_addr.s_addr); //коннект к серверу
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port); //порт
-	if (connect(server, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR)
+	iResult = connect(server, (SOCKADDR*)&addr, sizeof(addr));
+	if (iResult == SOCKET_ERROR)
 	{
 		std::cout << "Server connection failed with error: " << WSAGetLastError() << std::endl;
 		return 1;
@@ -73,7 +81,7 @@ DWORD WINAPI writeTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff)
 	}
 	std::cout << std::endl;
 
-	iResult = send(server, &str[0], (int) strlen(&str[0]), 0);
+	iResult = send(server, &str[0], str.size(), 0);
 	std::cout << "Count byte -> " << iResult << std::endl;
 	if (iResult == SOCKET_ERROR)
 	{
@@ -89,9 +97,9 @@ DWORD WINAPI writeTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff)
 
 DWORD WINAPI closeTCP(SOCKET& server)
 {
+	shutdown(server, SD_BOTH);
 	closesocket(server);
 	WSACleanup();
-
 	std::cout << "Server disconnected." << std::endl;
 
 	return 0;

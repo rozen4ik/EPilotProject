@@ -165,6 +165,8 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 				serialNumber.clear();
 				outDataPax = "";
 				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
 			}
 			else if (codeDevice == 3)
 			{
@@ -181,6 +183,8 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 				serialNumber.clear();
 				outDataPax = "";
 				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
 			}
 			break;
 		case 2:
@@ -210,10 +214,44 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 				outDataPax = "";
 				resFramePax = "";
 				outDataTCP.clear();
+				inDataTCP.clear();
 			}
 			else if (codeDevice == 39)
 			{
-				//
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFramePingInfo(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				HANDLE hSerialPort;
+				open_port(&hSerialPort);
+				std::cout << "Отправлено в порт" << std::endl;
+				std::cout << resFramePax << std::endl;
+				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
+				close_port(&hSerialPort);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+
+				frame = GetFramePingInfoTwoMessage();
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
 			}
 			break;
 		case 3:
@@ -233,6 +271,17 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 						GetDataForHost(response, 14, inDataTCP);
 
 						resFramePax = "\u0006";
+
+						ioPort(resFramePax, outDataPax);
+						response = GetBinaryOutData(outDataPax);
+
+						frame.clear();
+						outDataPax = "";
+						resFramePax = "";
+
+						GetDataForHost(response, 2, inDataTCP);
+
+						resFramePax = "\u0007";
 
 						ioPort(resFramePax, outDataPax);
 						response = GetBinaryOutData(outDataPax);

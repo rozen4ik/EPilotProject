@@ -9,3 +9,5 @@ std::vector<unsigned char> GetFrameNewHostMasterCall(std::vector<unsigned char>&
 std::vector<unsigned char> GetFrameReadTCP(std::vector<unsigned char>& serialNumber, std::vector<char>& outDataTCP);
 std::vector<unsigned char> GetFrameWriteTCP(std::vector<unsigned char>& serialNumber, int sizeData);
 std::vector<unsigned char> GetFrameCloseTCP(std::vector<unsigned char>& serialNumber);
+std::vector<unsigned char> GetFramePingInfo(std::vector<unsigned char>& serialNumber);
+std::vector<unsigned char> GetFramePingInfoTwoMessage();
