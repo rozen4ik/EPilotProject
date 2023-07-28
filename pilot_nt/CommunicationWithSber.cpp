@@ -33,7 +33,7 @@ DWORD WINAPI openTCP(WSADATA& WSAData, SOCKET& server, SOCKADDR_IN& addr, LPCWST
 }
 
 //Получение данных от сервера
-DWORD WINAPI readTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff) 
+DWORD WINAPI readTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff, SOCKADDR_IN& addr, LPCWSTR& ip, int& port)
 { 
 	int iResult;
 	char* buff = new char[sizeBuff];
@@ -42,7 +42,11 @@ DWORD WINAPI readTCP(SOCKET& server, std::vector<char>& buffer, int sizeBuff)
 	if (iResult == SOCKET_ERROR)
 	{
 		std::cout << "recv function failed with error: " << WSAGetLastError() << std::endl;
+		//WSADATA w;
+		//openTCP(w, server, addr, ip, port);
+
 		return 1;
+		//return readTCP(server, buffer, sizeBuff, addr, ip, port);
 	}
 	if (iResult == 0)
 	{

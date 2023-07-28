@@ -23,4 +23,6 @@ int GetPort(std::vector<unsigned char>& response);
 void GetSerialNumberMessage(std::vector<unsigned char>& response, std::vector<unsigned char>& serialNumber);
 int GetSizeBuff(std::vector<unsigned char>& response);
 void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::vector<char>& inDataTCP);
+void GetRowCheck(std::vector<unsigned char>& response, std::vector<unsigned char>& check);
+std::string cp866_to_utf8(const char* str);
 void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response);

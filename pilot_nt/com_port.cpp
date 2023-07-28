@@ -59,15 +59,21 @@ void read_port(HANDLE* hSerial, std::string& data)
 {
     DWORD iSize;
     char sReceivedChar = '\0';
-    while (sReceivedChar != '\u0003')
+
+    while (true)
     {
         BOOL iRet = ReadFile(*hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
         if (iSize > 0)   // если что-то принято, выводим
         {
+            if (sReceivedChar == '\u0003')
+            {
+                data += sReceivedChar;
+                break;
+            }
             data += sReceivedChar;
         }
-        else if (sReceivedChar == '\u0003')
-            break;
+        //else if (sReceivedChar == '\u0003')
+        //    break;
     }
 }
 

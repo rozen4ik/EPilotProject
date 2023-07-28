@@ -124,6 +124,44 @@ void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::v
 	}
 }
 
+void GetRowCheck(std::vector<unsigned char>& response, std::vector<unsigned char>& check)
+{
+	for (int i = 15; i < response.size() - 2; i++)
+	{
+		check.push_back(response[i]);
+	}
+}
+
+std::string cp866_to_utf8(const char* str) 
+{
+	std::string res;
+	int result_u, result_c;
+	result_u = MultiByteToWideChar(866, 0, str, -1, 0, 0);
+	if (!result_u) { return 0; }
+	wchar_t* ures = new wchar_t[result_u];
+	if (!MultiByteToWideChar(866, 0, str, -1, ures, result_u)) 
+	{
+		delete[] ures;
+		return 0;
+	}
+	result_c = WideCharToMultiByte(65001, 0, ures, -1, 0, 0, 0, 0);
+	if (!result_c) 
+	{
+		delete[] ures;
+		return 0;
+	}
+	char* cres = new char[result_c];
+	if (!WideCharToMultiByte(65001, 0, ures, -1, cres, result_c, 0, 0)) 
+	{
+		delete[] cres;
+		return 0;
+	}
+	delete[] ures;
+	res.append(cres);
+	delete[] cres;
+	return res;
+}
+
 void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response)
 {
 	int codeInstruction;
@@ -141,7 +179,10 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 	std::string resFramePax = "";
 	std::vector<char> outDataTCP;
 	std::vector<char> inDataTCP;
+	std::vector<unsigned char> check;
 	
+	openTCP(WSAData, server, addr, ip, port);
+
 	while (loop)
 	{
 		codeInstruction = response[9];
@@ -151,7 +192,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 		case 1:
 			if (codeDevice == 25)
 			{	
-				openTCP(WSAData, server, addr, ip, port);
+				//openTCP(WSAData, server, addr, ip, port);
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 25);
 				GetFrameWithCrc16(frame);
@@ -192,7 +233,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			{
 				outDataTCP.clear();
 				std::cout << "Чтение данных через TCP" << std::endl;
-				readTCP(server, outDataTCP, GetSizeBuff(response));
+				readTCP(server, outDataTCP, GetSizeBuff(response), addr, ip, port);
 
 				for (char c : outDataTCP)
 				{
@@ -201,7 +242,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 				std::cout << std::endl;
 
 				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameReadTCP(serialNumber, outDataTCP);
+				frame = GetFrameReadTCPMasterCall(serialNumber, outDataTCP);
 				GetFrameWithCrc16(frame);
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
@@ -219,7 +260,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			else if (codeDevice == 39)
 			{
 				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFramePingInfo(serialNumber);
+				frame = GetFramePingInfoMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
@@ -238,7 +279,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 				outDataTCP.clear();
 				inDataTCP.clear();
 
-				frame = GetFramePingInfoTwoMessage();
+				frame = GetFramePingInfoTwoMessageMasterCall();
 				GetFrameWithCrc16(frame);
 
 				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
@@ -300,7 +341,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 				std::cout << "Отправка данных через TCP" << std::endl;
 				writeTCP(server, inDataTCP, inDataTCP.size());
 
-				frame = GetFrameWriteTCP(serialNumber, inDataTCP.size());
+				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
 				GetFrameWithCrc16(frame);
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
@@ -317,16 +358,32 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			}
 			else if (codeDevice == 3)
 			{
-				//
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFrameWriteToCheckMasterCall(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				GetRowCheck(response, check);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
 			}
 			break;
 		case 4:
 			if (codeDevice == 25)
 			{
-				closeTCP(server);
+				//closeTCP(server);
 
 				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameCloseTCP(serialNumber);
+				frame = GetFrameCloseTCPMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
@@ -343,7 +400,21 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			}
 			else if (codeDevice == 3)
 			{
-				//
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFraneCloseToCheckMasterCall(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
 			}
 			break;
 		default:
@@ -351,4 +422,19 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			break;
 		}
 	}
+
+	std::string strCheck(check.begin(), check.end());
+	check.clear();
+
+	std::cout << "Чек об операции:" << std::endl;
+	std::cout << strCheck << std::endl;
+	std::string newCheck = cp866_to_utf8(strCheck.c_str());
+	std::cout << std::endl;
+	std::cout << newCheck << std::endl;
+	//for (unsigned char c : check)
+	//{
+	//	std::cout << c;
+	//}
+
+	//std::cout << std::endl;
 }

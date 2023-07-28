@@ -45,9 +45,6 @@
     <ClInclude Include="CommunicationWithSber.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="sber_tcp.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -72,9 +69,6 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="CommunicationWithSber.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="sber_tcp.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
