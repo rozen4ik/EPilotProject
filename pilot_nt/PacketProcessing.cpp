@@ -4,6 +4,8 @@
 #include "PacketProcessing.h"
 #include "com_port.h"
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 
 unsigned short ComputeChecksum(std::vector<unsigned char>& bytes)
@@ -66,6 +68,7 @@ void ioPort(std::string& inData, std::string& outData)
 	std::cout << "Отправлено в порт" << std::endl;
 	std::cout << inData << std::endl;
 	write_port(&hSerialPort, &inData[0], inData.length());
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	read_port(&hSerialPort, outData);
 	std::cout << "Получено из порта" << std::endl;
 	std::cout << outData << std::endl;
@@ -91,7 +94,6 @@ std::string GetIp(std::vector<unsigned char>& response)
 
 int GetPort(std::vector<unsigned char>& response)
 {
-	//std::string port = std::to_string(response[21]) + std::to_string(response[20]);
 	unsigned char arrPort[] = { response[20], response[21] };
 	int port = *((unsigned short*)arrPort);
 	std::cout << std::dec << port << std::endl;
@@ -162,7 +164,7 @@ std::string cp866_to_utf8(const char* str)
 	return res;
 }
 
-void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response)
+void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax)
 {
 	int codeInstruction;
 	int codeDevice;
@@ -419,6 +421,45 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			break;
 		default:
 			loop = false;
+			GetLastResponsePax(response, lastResponsePax, 9);
+
+			resFramePax = "\u0006";
+
+			ioPort(resFramePax, outDataPax);
+			response = GetBinaryOutData(outDataPax);
+
+			while (true)
+			{
+				if (response[0] == 128)
+				{
+					GetLastResponsePax(response, lastResponsePax, 9);
+
+					resFramePax = "\u0006";
+
+					ioPort(resFramePax, outDataPax);
+					response = GetBinaryOutData(outDataPax);
+
+					frame.clear();
+					outDataPax = "";
+					resFramePax = "";
+
+					GetLastResponsePax(response, lastResponsePax, 2);
+
+					resFramePax = "\u0007";
+
+					ioPort(resFramePax, outDataPax);
+					response = GetBinaryOutData(outDataPax);
+
+					frame.clear();
+					outDataPax = "";
+					resFramePax = "";
+				}
+				else
+				{
+					GetLastResponsePax(response, lastResponsePax, 2);
+					break;
+				}
+			}
 			break;
 		}
 	}
@@ -428,13 +469,30 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 
 	std::cout << "Чек об операции:" << std::endl;
 	std::cout << strCheck << std::endl;
-	std::string newCheck = cp866_to_utf8(strCheck.c_str());
-	std::cout << std::endl;
-	std::cout << newCheck << std::endl;
-	//for (unsigned char c : check)
-	//{
-	//	std::cout << c;
-	//}
 
-	//std::cout << std::endl;
+	auth_answer.Check = &strCheck[0];
+}
+
+void StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax)
+{
+	std::string outData = "";
+	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
+
+	GetFrameWithCrc16(frame);
+
+	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+	ioPort(resFrame, outData);
+
+	std::vector<unsigned char> response = GetBinaryOutData(outData);
+	BodyWorkPilotTrx(auth_answe, response, lastResponsePax);
+
+	outData = "";
+	response.clear();
+}
+
+void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex)
+{
+	for (int i = startIndex; i < response.size() - 2; i++)
+		lastResponsePax.push_back(response[i]);
 }

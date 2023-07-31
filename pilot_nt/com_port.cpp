@@ -11,16 +11,27 @@ void open_port(HANDLE* hSerial)
     int speed = 115200;
     //read_ini_file(sPortName, speed);
 
-	*hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	*hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    //*hSerial = CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
     if (*hSerial == INVALID_HANDLE_VALUE)
     {
         if (GetLastError() == ERROR_FILE_NOT_FOUND)
         {
-            std::cout << "serial port does not exist.\n";
+            std::cout << "Ќевозможно открыть последовательный порт.\n";
         }
         std::cout << "some other error occurred.\n";
     }
+
+    SetCommMask(*hSerial, EV_RXCHAR);
+    SetupComm(*hSerial, 3000, 3000);
+
+    COMMTIMEOUTS CommTimeOuts;
+    CommTimeOuts.ReadIntervalTimeout = 0xFFFFFFFF;
+    CommTimeOuts.ReadTotalTimeoutMultiplier = 0;
+    CommTimeOuts.ReadTotalTimeoutConstant = 3000;
+    CommTimeOuts.WriteTotalTimeoutMultiplier = 0;
+    CommTimeOuts.WriteTotalTimeoutConstant = 3000;
 
     DCB dcb = { 0 };
     dcb.DCBlength = sizeof(dcb);

@@ -10,6 +10,10 @@
 #endif
 
 
+/** Идентификатор контекста операции */
+typedef long CONTEXT_PTR;
+
+
 /** Идентификаторы параметров, которые можно получить или передать через контекст операции */
 typedef enum {
     PAR_LLT_ID = 1,    ///< [out] Номер программы лояльности в который попала карта, целое. Параметр возвращается при вызове функций ::card_authorize15 и ::ReadCardContext
@@ -68,6 +72,12 @@ typedef enum {
 
 #define OpetationTypes OperationTypes //fix spelling error with backward compatibility
 
+struct payment_info_item {
+    DWORD  dwTag;                    /**< Тег платежной системы */
+    char   Value[MAX_PAYMENT_ITEM];  /**< Значение тэга платежной системы. 128 байт. ::MAX_PAYMENT_ITEM */
+    BYTE   Flags;                    /**< must be 0x40 for immediate sending    */
+    void* pNextItem;                /**< ?? */
+};
 
 /**
  * Основные параметры операции.
@@ -136,3 +146,104 @@ extern "C" PILOT_NT_API int TestPinpad();
 /// Закрытие дня.  
 /// </summary>/// <param name="auth_answer">Поля TType, Amount, CType заполнять не нужно.</param>/// <returns>int Код ошибки.</returns>
 extern "C" PILOT_NT_API int close_day(auth_answer* auth_answer);
+
+/// <summary>
+/// Выполнение операций по картам 
+/// Функция дополнительно принимает входной и выходной контексты операции. 
+/// Во входном контексте в библиотеку передаются дополнительные параметры операции в выходном контексте возвращается расширенный результат операции. 
+/// Параметры, которые могут переданы или получены через контекст операции перечислены в EParameterName. 
+/// </summary>
+/// <param name="track2">данные дорожки карты с магнитной полосой. Если NULL, то будет предложено считать карту.</param>
+/// <param name="auth_answer">см. auth_answer14 </param>
+/// <param name="">Информация для платежной системы. Должен быть равен NULL, если терминал не настроен специальным образом для передачи дополнительных параметров на хост.</param>
+/// <param name="dataInt">см. ctxAlloc</param>
+/// <param name="dataOut">см. ctxAlloc</param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item*, CONTEXT_PTR dataInt, CONTEXT_PTR dataOut);
+
+/// <summary>
+/// Создать контекст операции. Функция создает пустой контекст операции. 
+/// </summary>
+/// <returns>CONTEXT_PTR Идентификатор контекста операции или 0, если произошла ошибка </returns>
+extern "C" PILOT_NT_API CONTEXT_PTR ctxAlloc();
+
+/// <summary>
+/// Отчистить контекст. Функция удаляет все параметры из контекста. 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <returns></returns>
+extern "C" PILOT_NT_API void ctxClear(CONTEXT_PTR ctx);
+
+/// <summary>
+///Удалить контекст операции 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста.</param>
+/// <returns></returns>
+extern "C" PILOT_NT_API void ctxFree(CONTEXT_PTR ctx);
+
+/// <summary>
+/// Считать из контекста значение переменной в виде последовательности байт. 
+/// Для строковой переменной будет значение будет возвращено без изменения, 
+/// для целочисленной переменной функция вернет последовательность из четырех байт с прямым порядком байт. 
+/// Если размер буфера недостачен, в переменную pVal будет скопировано MAXSIZE байт, а вызов завершится ошибкой ERR_CTX_GET.
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <param name="name">Идентификатор параметра. </param>
+/// <param name="pVal">Указатель на буфер результата. </param>
+/// <param name="pOutSz">Количество байт, скопированных в буфер.</param>
+/// <param name="MAXSIZE">Максимально возможное количество байт. </param>
+/// <returns>int Код ошибки. ERR_OK - переменная считана успешно. ERR_CTX_GET - ошибка получения переменной. </returns>
+extern "C" PILOT_NT_API int ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* pVal, int* pOutSz, int MAXSIZE);
+
+/// <summary>
+/// Считать из контекста значение переменной в виде целого числа. 
+/// Для строковой переменной будет выполнено преобразование строки в число, 
+/// для последовательности байт функция преобразует первые четыре байта последовательности в целое число с прямым порядком байт. 
+/// При возвращении ошибки значение *pVal не изменяется 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <param name="name">Идентификатор параметра. </param>
+/// <param name="pVal">Указатель на число.</param>
+/// <returns>int Код ошибки. ERR_OK - переменная считана успешно. ERR_CTX_GET - ошибка получения переменной. </returns>
+extern "C" PILOT_NT_API int ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal);
+
+/// <summary>
+/// Считать из контекста значение переменной в виде строки. 
+/// Для целочисленной переменной вы получите ее строковое представление, 
+/// а для последовательности байт функция вернет hex строку. 
+/// Если размер буфера недостачен, в переменную pVal будет скопировано sz-1 байт + завершающий ноль, а вызов завершится ошибкой ERR_CTX_GET. 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <param name="name">Идентификатор параметра. </param>
+/// <param name="str">Указатель на строку. </param>
+/// <param name="sz">Максимально возможная длина строки. </param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz);
+
+/// <summary>
+/// Записать в контекст значение параметра в виде последовательности байт. 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <param name="name">Идентификатор параметра. </param>
+/// <param name="val">Указатель на буфер. </param>
+/// <param name="sz">Длина буфера. </param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz);
+
+/// <summary>
+/// Записать в контекст значение целочисленного параметра. 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <param name="name">Идентификатор параметра. </param>
+/// <param name="val">Значение параметра. </param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val);
+
+/// <summary> 
+/// Записать в контекст значение строкового параметра. 
+/// </summary>
+/// <param name="ctx">Идентификатор контекста. </param>
+/// <param name="name">Идентификатор параметра.</param>
+///  <param name="str">Указатель на строку. </param>
+///  <returns>int Код ошибки</returns>
+extern "C" PILOT_NT_API int ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str);
