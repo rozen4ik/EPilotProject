@@ -13,6 +13,8 @@ int main()
 		std::cout << "1 - Закрыть смену" << std::endl;
 		std::cout << "2 - Произвести оплату" << std::endl;
 		std::cout << "3 - Возврат" << std::endl;
+		std::cout << "4 - Ожидание карты" << std::endl;
+		std::cout << "5 - Аварийная отмена платежа" << std::endl;
 
 		std::cin >> command;
 		int error;
@@ -29,6 +31,8 @@ int main()
 				for (char c : argument1.RCode)
 					std::cout << std::hex << std::uppercase << int(c);
 				std::cout << std::endl;
+
+				Done();
 
 				//if (argument1.Check)
 				//	::GlobalFree(argument1.Check);
@@ -54,6 +58,12 @@ int main()
 
 				//if (argument3.ans.Check)
 				//	::GlobalFree(argument3.ans.Check);
+				break;
+			case 4:
+				error = ReadCardContext(0);
+				break;
+			case 5:
+				error = RollbackTrx(10000, NULL);
 				break;
 			default:
 				loop = false;

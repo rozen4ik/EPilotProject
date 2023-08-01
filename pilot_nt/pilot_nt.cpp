@@ -5,53 +5,26 @@
 #include "PacketProcessing.h"
 #include "base64.h"
 #include <iostream>
+#include "PilotService.h"
+
+PilotService pService;
 
 int TestPinpad()
 {	
-	std::cout << "\nTestPinpad" << std::endl;
-
-	std::string outData = "";
-	std::vector<unsigned char> frame = GetFrameGetReady(0x0000);
-
-	GetFrameWithCrc16(frame);
-
-	std::string resFrame = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";	
-	ioPort(resFrame, outData);
-
-	std::vector<unsigned char> response = GetBinaryOutData(outData);
-
-	return response[2];
+	PilotService* ps = &pService;
+	return ps->TestPinpad();
 }
 
 int close_day(auth_answer* auth_answer)
 {
-	TestPinpad();
-	std::cout << "\nclose_day" << std::endl;
-	
-	auth_answer->TType = OP_PIL_OT_TOTALS;
-	std::vector<unsigned char> lastResponsePax;
-
-	StartWork(*auth_answer, lastResponsePax);
-
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1]};
-	int RCode = *((unsigned short*)errCode);
-
-	return RCode;
+	PilotService* ps = &pService;
+	return ps->close_day(auth_answer);
 }
 
-int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item*, CONTEXT_PTR dataInt, CONTEXT_PTR dataOut)
+int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut)
 {
-	TestPinpad();
-	std::cout << "\ncard_authorize15" << std::endl;
-	std::string track;
-	std::vector<unsigned char> lastResponsePax;
-
-	if (track2 != nullptr)
-		track = track2;
-
-	StartWork(auth_answer->ans, lastResponsePax);
-
-	return 0;
+	PilotService* ps = &pService;
+	return ps->card_authorize15(track2, auth_answer, payinfo, dataIn, dataOut);
 }
 
 CONTEXT_PTR ctxAlloc()
@@ -97,4 +70,39 @@ int ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val)
 int ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str)
 {
 	return 0;
+}
+
+int ReadCardContext(CONTEXT_PTR dataOut)
+{
+	PilotService* ps = &pService;
+	return ps->ReadCardContext(dataOut);
+}
+
+int CommitTrx(DWORD dwAmount, char* pAuthCode)
+{
+	PilotService* ps = &pService;
+	return ps->CommitTrx(dwAmount, pAuthCode);
+}
+
+int RollbackTrx(DWORD dwAmount, char* pAuthCode)
+{
+	PilotService* ps = &pService;
+	return ps->RollbackTrx(dwAmount, pAuthCode);
+}
+
+int SuspendTrx(DWORD dwAmount, char* pAuthCode)
+{
+	PilotService* ps = &pService;
+	return ps->SuspendTrx(dwAmount, pAuthCode);
+}
+
+int AbortTransaction()
+{
+	PilotService* ps = &pService;
+	return ps->AbortTransaction();
+}
+
+void Done()
+{	
+	//
 }

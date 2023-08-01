@@ -149,6 +149,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="PacketProcessing.h" />
     <ClInclude Include="paramsln.h" />
+    <ClInclude Include="PilotService.h" />
     <ClInclude Include="pilot_nt.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
@@ -160,6 +161,7 @@
     <ClCompile Include="com_port.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="PacketProcessing.cpp" />
+    <ClCompile Include="PilotService.cpp" />
     <ClCompile Include="pilot_nt.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -193,7 +193,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 		{
 		case 1:
 			if (codeDevice == 25)
-			{	
+			{
 				//openTCP(WSAData, server, addr, ip, port);
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 25);
@@ -234,7 +234,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			if (codeDevice == 25)
 			{
 				outDataTCP.clear();
-				std::cout << "Чтение данных через TCP" << std::endl;
+				std::cout << "Чтение данных TCP" << std::endl;
 				readTCP(server, outDataTCP, GetSizeBuff(response), addr, ip, port);
 
 				for (char c : outDataTCP)
@@ -269,7 +269,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 
 				HANDLE hSerialPort;
 				open_port(&hSerialPort);
-				std::cout << "Отправлено в порт" << std::endl;
+				std::cout << "Запись данных ComPort" << std::endl;
 				std::cout << resFramePax << std::endl;
 				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
 				close_port(&hSerialPort);
@@ -299,7 +299,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 			break;
 		case 3:
 			if (codeDevice == 25)
-			{	
+			{
 				while (true)
 				{
 					if (response[0] == 0)
@@ -340,7 +340,7 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 					}
 				}
 
-				std::cout << "Отправка данных через TCP" << std::endl;
+				std::cout << "Запись данных TCP" << std::endl;
 				writeTCP(server, inDataTCP, inDataTCP.size());
 
 				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());

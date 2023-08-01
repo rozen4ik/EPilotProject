@@ -51,6 +51,10 @@ typedef enum {
     OP_FUNDS = 6,   ///< Безнал.перевод (только ВСП)
     OP_PIL_OT_TOTALS = 7, ///< Сверка итогов
     OP_CANCEL = 8,   ///< Отмена покупки. Библиотека не разделяет отмену и возврат и всегда выполняет возврат. Для выполнения только отмены, в файле pinpad.ini должен быть указан параметр PilotNtSeparateCancelAndRefund=1
+    OP_ROLLBACK = 13, ///< Аварийная отмена
+    OP_SUSPEND = 15, ///< Приастоновка транзакции
+    OP_COMMIT = 16, ///< Фиксация транзакции
+    OP_READ_CARD = 20, ///< Ожидание карты
     OP_ADD_AUTH = 42,  ///< Добавочная предавторизация
     OP_CANC_AUTH = 43,  ///< Отмена предавторизации
     OP_PREAUTH = 51,  ///< Предавторизация
@@ -155,11 +159,11 @@ extern "C" PILOT_NT_API int close_day(auth_answer* auth_answer);
 /// </summary>
 /// <param name="track2">данные дорожки карты с магнитной полосой. Если NULL, то будет предложено считать карту.</param>
 /// <param name="auth_answer">см. auth_answer14 </param>
-/// <param name="">Информация для платежной системы. Должен быть равен NULL, если терминал не настроен специальным образом для передачи дополнительных параметров на хост.</param>
+/// <param name="payinfo">Информация для платежной системы. Должен быть равен NULL, если терминал не настроен специальным образом для передачи дополнительных параметров на хост.</param>
 /// <param name="dataInt">см. ctxAlloc</param>
 /// <param name="dataOut">см. ctxAlloc</param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item*, CONTEXT_PTR dataInt, CONTEXT_PTR dataOut);
+extern "C" PILOT_NT_API int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut);
 
 /// <summary>
 /// Создать контекст операции. Функция создает пустой контекст операции. 
@@ -247,3 +251,59 @@ extern "C" PILOT_NT_API int ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int 
 ///  <param name="str">Указатель на строку. </param>
 ///  <returns>int Код ошибки</returns>
 extern "C" PILOT_NT_API int ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str);
+
+/// <summary>
+/// Чтение карты Если требуется чтение нестандартных карт, например карт лояльности на базе Mifare или Google VAS, в контекст операции должен быть передан соответсвующий тип карты.
+/// </summary>
+/// <param name="dataOut">Контекст операции, в которую копируются pan, хэш, тип карты, признак "Карта выпущена Сбербанком", номер программы лояльности, признаки считывания VAS и т.п.</param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int ReadCardContext(CONTEXT_PTR dataOut);
+
+/// <summary>
+/// Функция возвращает последнюю успешную транзакцию в «нормальное» состояние. 
+/// После этого транзакция будет включена в отчет и спроцессирована как успешная. 
+/// Перевести ее снова в «подвешенное» состояние будет уже нельзя. 
+/// Функция сверяет переданные извне параметры (сумму и код авторизации) со значениями в последней успешной операции, которая была проведена через библиотеку. 
+/// Если хотя бы один параметр не совпадает, функция возвращает код ошибки 4140 и не выполняет никаких действий. 
+/// </summary>
+/// <param name="dwAmount">Сумма операции (в копейках)</param>
+/// <param name="pAuthCode">Код авторизации.</param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int CommitTrx(DWORD dwAmount, char* pAuthCode);
+
+/// <summary>
+/// Функция вызывает немедленную отмену последней успешной операции 
+/// Операция может быть предварительно возможно, ранее переведенную в «подвешенное» состояние, хотя это и не обязательно). 
+/// Если транзакция уже была возвращена в «нормальное» состояние функцией CommitTrx(), то функция RollbackTrx() завершится с кодом ошибки 4141, 
+/// не выполняя никаких действий. Функция сверяет переданные извне параметры (сумму и код авторизации) со значениями в последней успешной операции, 
+/// которая была проведена через библиотеку. Если хотя бы одинпараметр не совпадает, функция возвращает код ошибки 4140 и не выполняет никаких действий.
+///</summary>
+///<param name="dwAmount">Сумма операции (в копейках) </param> 
+/// <param name="pAuthCode">Код авторизации.</param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int RollbackTrx(DWORD dwAmount, char* pAuthCode);
+
+/// <summary>
+/// Функция переводит последнюю успешную транзакцию в «подвешенное» состояние. 
+/// Если транзакция находится в этом состоянии, то при следующем сеансе связи с банком она будет отменена.
+/// Функция сверяет переданные извне параметры (сумму и код авторизации) со значениями в последней успешной операции, 
+/// которая была проведена через библиотеку. Если хотя бы один параметр не совпадает, функция возвращает код ошибки 4140 и не выполняет никаких действий.
+///</summary>
+/// <param name="dwAmount">Сумма операции (в копейках) </param>
+/// <param name="pAuthCode">Код авторизации. </param>
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int SuspendTrx(DWORD dwAmount, char* pAuthCode);
+
+/// <summary>
+/// Функция прерывает работу функций card_authorizeX() 
+/// Внешнее ПО может вызвать эту функцию из отдельного треда, чтобы досрочно прекратить выполнение любой из функций card_authorize…(). 
+/// При этом функция card_authorize…() завершится с кодом ошибки 2000 (операция прервана). 
+/// </summary> 
+/// <returns>int Код ошибки. </returns>
+extern "C" PILOT_NT_API int AbortTransaction();
+
+/// <summary>
+/// Выполняется отключение от библиотеки gate.dll 
+/// </summary>
+/// <returns></returns>
+extern "C" PILOT_NT_API void Done();
