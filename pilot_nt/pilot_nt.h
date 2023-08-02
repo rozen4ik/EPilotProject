@@ -15,7 +15,8 @@ typedef long CONTEXT_PTR;
 
 
 /** Идентификаторы параметров, которые можно получить или передать через контекст операции */
-typedef enum {
+typedef enum 
+{
     PAR_LLT_ID = 1,    ///< [out] Номер программы лояльности в который попала карта, целое. Параметр возвращается при вызове функций ::card_authorize15 и ::ReadCardContext
     PAR_PAN = 2,    ///< [out] Маскированный номер карты, строка. Параметр возвращается при вызове функций ::ReadCardContext
     PAR_HASH = 3,    ///< [out] Хэш. Строка. Параметр возвращается функцией ::ReadCardContext
@@ -43,7 +44,8 @@ typedef enum {
  /**@{*/
 
  /** Типы операций */
-typedef enum {
+typedef enum 
+{
     OP_PURCHASE = 1,   ///< Оплата покупки
     OP_CASH = 2,   ///< Выдача наличных (только ВСП)
     OP_RETURN = 3,   ///< Возврат либо отмена покупки
@@ -74,9 +76,29 @@ typedef enum {
     OP_CANCEL_EL_CERT = 89 ///< Отмена оплаты с использованием ЭС НСПК
 } OperationTypes;
 
+typedef enum
+{
+    ERROR_CODE = 0, ///< Результат выполнения транзакции 2 байт    
+    CODE_AUTH = 1, ///< Код авторизации 7 байт
+    RRN = 2, ///< Ссылочный номер RRN 13 байт
+    NUMBER_OPERATION_DAY = 3, ///< Порядковый номер операции за день 5 байт
+    NUMBER_CARD = 4, ///< Номер карты 20 байт
+    CARD_DATE = 5, ///< Срок действия карты 6 байт
+    TEXT_MESSAGE_ERROR = 6, ///< Текстовое сообщение об ошибке 32 байт
+    DATE_OPERATION = 7, ///< Дата операции 4 байт
+    TIME_OPERATION = 8, ///< Время операции 4 байт
+    BANK_AFFILIATION = 9, ///< Принадлежность карты Сбербанку 1 байт
+    NUMBER_TERMINAL = 10, ///< Номер терминала 9 байт
+    NAME_CARD = 11, ///< Название карты 32 байт
+    HASH_CARD = 12, ///< SHA1 (номер карты) Хеш от номера карты 20 байт
+    ECRYPTED_DATA = 13, ///< Шифрованные данные 32 байт
+    CARD_ID = 14 ///< CardID 1 байт
+} ResponseRCardContext;
+
 #define OpetationTypes OperationTypes //fix spelling error with backward compatibility
 
-struct payment_info_item {
+struct payment_info_item 
+{
     DWORD  dwTag;                    /**< Тег платежной системы */
     char   Value[MAX_PAYMENT_ITEM];  /**< Значение тэга платежной системы. 128 байт. ::MAX_PAYMENT_ITEM */
     BYTE   Flags;                    /**< must be 0x40 for immediate sending    */

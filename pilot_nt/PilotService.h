@@ -6,10 +6,15 @@
 #include "PacketProcessing.h"
 #include "base64.h"
 #include <iostream>
+#include <unordered_map>
 
 class PilotService
 {
 public:
+	std::unordered_map<CONTEXT_PTR, auth_answer14> dContext;
+	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> DTagExtraData;
+	std::unordered_map<ResponseRCardContext, std::vector<unsigned char>> resRecCard;
+
 	int TestPinpad();
 	int close_day(auth_answer* auth_answer);
 	int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut);

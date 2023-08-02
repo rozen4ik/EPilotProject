@@ -496,3 +496,98 @@ void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsign
 	for (int i = startIndex; i < response.size() - 2; i++)
 		lastResponsePax.push_back(response[i]);
 }
+
+void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector<unsigned char>>& resRecCard, std::vector<unsigned char>& lastResponsePax)
+{
+	int index = 0;
+
+	std::vector<unsigned char> buffer;
+
+	std::cout << "\nresRecCard.ErrorCode" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 2, index);
+	resRecCard[ERROR_CODE] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.CodeAuth" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 7, index);
+	resRecCard[CODE_AUTH] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.RRN" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 13, index);
+	resRecCard[RRN] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.NumberOperationDay" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 5, index);
+	resRecCard[NUMBER_OPERATION_DAY] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.NumberCard" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 4, index);
+	resRecCard[NUMBER_CARD] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.CardDate" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 6, index);
+	resRecCard[CARD_DATE] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.TextMessageError" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 32, index);
+	resRecCard[TEXT_MESSAGE_ERROR] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.DateOperation" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 4, index);
+	resRecCard[DATE_OPERATION] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.TimeOperation" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 4, index);
+	resRecCard[TIME_OPERATION] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.BankAffiliation" << std::endl;
+	buffer.push_back(lastResponsePax[index]);
+	std::cout << std::hex << std::uppercase << int(lastResponsePax[index]) << " ";
+	index++;
+	resRecCard[BANK_AFFILIATION] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.NumberTerminal" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 9, index);
+	resRecCard[NUMBER_TERMINAL] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.NameCard" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 32, index);
+	resRecCard[NAME_CARD] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.HashCard" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 20, index);
+	resRecCard[HASH_CARD] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.EncryptedData" << std::endl;
+	LoopForParsResponseResCard(buffer, lastResponsePax, 32, index);
+	resRecCard[ECRYPTED_DATA] = buffer;
+	buffer.clear();
+
+	std::cout << "\nresRecCard.CardID" << std::endl;
+	buffer.push_back(lastResponsePax[index]);
+	std::cout << std::hex << std::uppercase << int(lastResponsePax[index]) << " ";
+	resRecCard[CARD_ID] = buffer;
+	buffer.clear();
+}
+
+void LoopForParsResponseResCard(std::vector<unsigned char>& buffer, std::vector<unsigned char>& lastResponsePax, int stopIter, int& index)
+{
+	for (int i = 0; i < stopIter; i++)
+	{
+		buffer.push_back(lastResponsePax[i]);
+		std::cout << std::hex << std::uppercase << int(lastResponsePax[i]) << " ";
+		index++;
+	}
+}

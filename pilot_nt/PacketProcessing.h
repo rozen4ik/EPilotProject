@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <vector>
 #include <tchar.h>
+#include <unordered_map>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -28,3 +29,5 @@ std::string cp866_to_utf8(const char* str);
 void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax);
 void StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax);
 void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex);
+void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector<unsigned char>>& resRecCard, std::vector<unsigned char>& lastResponsePax);
+void LoopForParsResponseResCard(std::vector<unsigned char>& buffer, std::vector<unsigned char>& lastResponsePax, int stopIter, int& index);

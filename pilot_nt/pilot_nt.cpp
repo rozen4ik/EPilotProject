@@ -11,98 +11,90 @@ PilotService pService;
 
 int TestPinpad()
 {	
-	PilotService* ps = &pService;
-	return ps->TestPinpad();
+	return pService.TestPinpad();
 }
 
 int close_day(auth_answer* auth_answer)
 {
-	PilotService* ps = &pService;
-	return ps->close_day(auth_answer);
+	return pService.close_day(auth_answer);
 }
 
 int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut)
 {
-	PilotService* ps = &pService;
-	return ps->card_authorize15(track2, auth_answer, payinfo, dataIn, dataOut);
+	return pService.card_authorize15(track2, auth_answer, payinfo, dataIn, dataOut);
 }
 
 CONTEXT_PTR ctxAlloc()
 {
-	return 0;
+	return pService.ctxAlloc();
 }
 
 void ctxClear(CONTEXT_PTR ctx)
 {
-	//
+	pService.ctxClear(ctx);
 }
 
 void ctxFree(CONTEXT_PTR ctx)
 {
-	//
+	pService.ctxFree(ctx);
 }
 
 int ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* pVal, int* pOutSz, int MAXSIZE)
 {
-	return 0;
+	return pService.ctxGetBinary(ctx, name, pVal, pOutSz, MAXSIZE);
 }
 
 int ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal)
 {
-	return 0;
+	return pService.ctxGetInt(ctx, name, pVal);
 }
 
 int ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz)
 {
-	return 0;
+	return pService.ctxGetString(ctx, name, str, sz);
 }
 
 int ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz)
 {
-	return 0;
+	return pService.ctxSetBinary(ctx, name, val, sz);
 }
 
 int ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val)
 {
-	return 0;
+	return pService.ctxSetInt(ctx, name, val);
 }
 
 int ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str)
 {
-	return 0;
+	return pService.ctxSetString(ctx, name, str);
 }
 
 int ReadCardContext(CONTEXT_PTR dataOut)
 {
-	PilotService* ps = &pService;
-	return ps->ReadCardContext(dataOut);
+	return pService.ReadCardContext(dataOut);
 }
 
 int CommitTrx(DWORD dwAmount, char* pAuthCode)
 {
-	PilotService* ps = &pService;
-	return ps->CommitTrx(dwAmount, pAuthCode);
+	return pService.CommitTrx(dwAmount, pAuthCode);
 }
 
 int RollbackTrx(DWORD dwAmount, char* pAuthCode)
 {
-	PilotService* ps = &pService;
-	return ps->RollbackTrx(dwAmount, pAuthCode);
+	return pService.RollbackTrx(dwAmount, pAuthCode);
 }
 
 int SuspendTrx(DWORD dwAmount, char* pAuthCode)
 {
-	PilotService* ps = &pService;
-	return ps->SuspendTrx(dwAmount, pAuthCode);
+	return pService.SuspendTrx(dwAmount, pAuthCode);
 }
 
 int AbortTransaction()
 {
-	PilotService* ps = &pService;
-	return ps->AbortTransaction();
+	return pService.AbortTransaction();
 }
 
 void Done()
 {	
-	//
+	pService.Done();
 }
