@@ -7,8 +7,16 @@
 
 void open_port(HANDLE* hSerial)
 {
-	LPCTSTR sPortName = L"COM2";
-    int speed = 115200;
+    std::unordered_map<std::string, std::string>settings;
+    getSettingsForPinpad(settings);
+
+    std::wstring nPort(settings["ComPort"].begin(), settings["ComPort"].end());
+    int speed = std::stoi(settings["Speed"]);
+    LPCTSTR sPortName = nPort.c_str();
+
+    std::cout << settings["ComPort"] << std::endl;
+    std::cout << speed << std::endl;
+
     //read_ini_file(sPortName, speed);
 
 	*hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -106,50 +114,35 @@ void close_port(HANDLE* hSerial)
     CloseHandle(*hSerial);
 }
 
-void read_ini_file(LPCTSTR& sPortName, int& speedPort)
+void getSettingsForPinpad(std::unordered_map<std::string, std::string>& settings)
 {
-    std::ifstream in("pinpad.ini");
     std::string line;
-    std::string speed = "";
-    int cout = 0;
+    std::string comPort;
+    std::string speed;
+    size_t index = 0;
 
+    std::ifstream in("pinpad.ini");
     if (in.is_open())
     {
         while (std::getline(in, line))
         {
-            size_t position = line.find("ComPort=");
-            if (position != std::string::npos)
+            if (line.find("ComPort") != std::string::npos)
             {
-                position = line.find("=");
-                for (int i = position + 1; i < line.length(); i++)
-                    sPortName += line[i];
-                cout++;
+                index = line.find("=") + 1;
+                for (int i = index; i < line.size(); i++)
+                    comPort += line[i];
             }
-            else
+            else if (line.find("Speed") != std::string::npos)
             {
-                std::cout << "Net porta" << std::endl;
-            }
-
-            position = line.find("Speed=");
-            if (position != std::string::npos)
-            {
-                position = line.find("=");
-                for (int i = position + 1; i < line.length(); i++)
-                {
+                index = line.find("=") + 1;
+                for (int i = index; i < line.size(); i++)
                     speed += line[i];
-                }
-                speedPort = std::stoi(speed);
-                cout++;
             }
-            else
-            {
-                std::cout << "Net porta" << std::endl;
-            }
-
-
-            if (cout == 2) break;
         }
     }
 
     in.close();
+
+    settings["ComPort"] = "COM" + comPort;
+    settings["Speed"] = speed;
 }
