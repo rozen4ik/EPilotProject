@@ -164,7 +164,7 @@ std::string cp866_to_utf8(const char* str)
 	return res;
 }
 
-void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax)
+int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::unordered_map<std::string, int>& runCardAuth)
 {
 	int codeInstruction;
 	int codeDevice;
@@ -184,9 +184,11 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 	std::vector<unsigned char> check;
 	
 	openTCP(WSAData, server, addr, ip, port);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	while (loop)
 	{
+		if (runCardAuth["cardAuth15"] == 0) return 2000;
 		codeInstruction = response[9];
 		codeDevice = response[10];
 		switch (codeInstruction)
@@ -471,24 +473,32 @@ void BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& resp
 	std::cout << strCheck << std::endl;
 
 	auth_answer.Check = &strCheck[0];
+
+	return 0;
 }
 
-void StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax)
+int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::unordered_map<std::string, int>& runCardAuth)
 {
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	GetFrameWithCrc16(frame);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
 	ioPort(resFrame, outData);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	BodyWorkPilotTrx(auth_answe, response, lastResponsePax);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, runCardAuth);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	outData = "";
 	response.clear();
+	return 0;
 }
 
 void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex)
