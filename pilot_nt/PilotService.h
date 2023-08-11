@@ -15,6 +15,8 @@ public:
 	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> DTagExtraData;
 	std::unordered_map<ResponseRCardContext, std::vector<unsigned char>> resRecCard;
 	std::unordered_map<std::string, int>runCardAuth;
+	std::string str;
+	std::string rStr;
 
 	int TestPinpad();
 	int close_day(auth_answer* auth_answer);

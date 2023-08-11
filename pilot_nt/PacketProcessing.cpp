@@ -66,12 +66,14 @@ void ioPort(std::string& inData, std::string& outData)
 	HANDLE hSerialPort;	
 	open_port(&hSerialPort);
 	std::cout << "Отправлено в порт" << std::endl;
+	Logger("-> " + inData);
 	std::cout << inData << std::endl;
 	write_port(&hSerialPort, &inData[0], inData.length());
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	read_port(&hSerialPort, outData);
 	std::cout << "Получено из порта" << std::endl;
 	std::cout << outData << std::endl;
+	Logger("<- " + outData);
 	std::cout << std::endl;
 	close_port(&hSerialPort);
 }
@@ -134,37 +136,7 @@ void GetRowCheck(std::vector<unsigned char>& response, std::vector<unsigned char
 	}
 }
 
-std::string cp866_to_utf8(const char* str) 
-{
-	std::string res;
-	int result_u, result_c;
-	result_u = MultiByteToWideChar(866, 0, str, -1, 0, 0);
-	if (!result_u) { return 0; }
-	wchar_t* ures = new wchar_t[result_u];
-	if (!MultiByteToWideChar(866, 0, str, -1, ures, result_u)) 
-	{
-		delete[] ures;
-		return 0;
-	}
-	result_c = WideCharToMultiByte(65001, 0, ures, -1, 0, 0, 0, 0);
-	if (!result_c) 
-	{
-		delete[] ures;
-		return 0;
-	}
-	char* cres = new char[result_c];
-	if (!WideCharToMultiByte(65001, 0, ures, -1, cres, result_c, 0, 0)) 
-	{
-		delete[] cres;
-		return 0;
-	}
-	delete[] ures;
-	res.append(cres);
-	delete[] cres;
-	return res;
-}
-
-int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::unordered_map<std::string, int>& runCardAuth)
+int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
 	int codeInstruction;
 	int codeDevice;
@@ -468,16 +440,319 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 	std::string strCheck(check.begin(), check.end());
 	check.clear();
-
-	std::cout << "Чек об операции:" << std::endl;
-	std::cout << strCheck << std::endl;
-
-	auth_answer.Check = &strCheck[0];
+	str = strCheck;
 
 	return 0;
 }
 
-int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::unordered_map<std::string, int>& runCardAuth)
+int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str)
+{
+	int codeInstruction;
+	int codeDevice;
+	bool loop = true;
+	WSADATA WSAData;
+	SOCKET server;
+	SOCKADDR_IN addr;
+	std::string ipString = GetIp(response);
+	std::wstring stemp = std::wstring(ipString.begin(), ipString.end());
+	LPCWSTR ip = stemp.c_str();
+	int port = GetPort(response);
+	std::vector<unsigned char> frame, serialNumber;
+	std::string outDataPax = "";
+	std::string resFramePax = "";
+	std::vector<char> outDataTCP;
+	std::vector<char> inDataTCP;
+	std::vector<unsigned char> check;
+
+	openTCP(WSAData, server, addr, ip, port);
+
+	while (loop)
+	{
+		codeInstruction = response[9];
+		codeDevice = response[10];
+		switch (codeInstruction)
+		{
+		case 1:
+			if (codeDevice == 25)
+			{
+				//openTCP(WSAData, server, addr, ip, port);
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFrameNewHostMasterCall(serialNumber, 25);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			else if (codeDevice == 3)
+			{
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFrameNewHostMasterCall(serialNumber, 3);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			break;
+		case 2:
+			if (codeDevice == 25)
+			{
+				outDataTCP.clear();
+				std::cout << "Чтение данных TCP" << std::endl;
+				readTCP(server, outDataTCP, GetSizeBuff(response), addr, ip, port);
+
+				for (char c : outDataTCP)
+				{
+					std::cout << std::hex << std::uppercase << int(c) << " ";
+				}
+				std::cout << std::endl;
+
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFrameReadTCPMasterCall(serialNumber, outDataTCP);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			else if (codeDevice == 39)
+			{
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFramePingInfoMasterCall(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				HANDLE hSerialPort;
+				open_port(&hSerialPort);
+				std::cout << "Запись данных ComPort" << std::endl;
+				std::cout << resFramePax << std::endl;
+				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
+				close_port(&hSerialPort);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+
+				frame = GetFramePingInfoTwoMessageMasterCall();
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			break;
+		case 3:
+			if (codeDevice == 25)
+			{
+				while (true)
+				{
+					if (response[0] == 0)
+					{
+						GetSerialNumberMessage(response, serialNumber);
+						GetDataForHost(response, 14, inDataTCP);
+						break;
+					}
+					else if (response[0] == 128)
+					{
+						GetSerialNumberMessage(response, serialNumber);
+						GetDataForHost(response, 14, inDataTCP);
+
+						resFramePax = "\u0006";
+
+						ioPort(resFramePax, outDataPax);
+						response = GetBinaryOutData(outDataPax);
+
+						frame.clear();
+						outDataPax = "";
+						resFramePax = "";
+
+						GetDataForHost(response, 2, inDataTCP);
+
+						resFramePax = "\u0007";
+
+						ioPort(resFramePax, outDataPax);
+						response = GetBinaryOutData(outDataPax);
+
+						frame.clear();
+						outDataPax = "";
+						resFramePax = "";
+					}
+					else
+					{
+						GetDataForHost(response, 2, inDataTCP);
+						break;
+					}
+				}
+
+				std::cout << "Запись данных TCP" << std::endl;
+				writeTCP(server, inDataTCP, inDataTCP.size());
+
+				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			else if (codeDevice == 3)
+			{
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFrameWriteToCheckMasterCall(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				GetRowCheck(response, check);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			break;
+		case 4:
+			if (codeDevice == 25)
+			{
+				//closeTCP(server);
+
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFrameCloseTCPMasterCall(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			else if (codeDevice == 3)
+			{
+				GetSerialNumberMessage(response, serialNumber);
+				frame = GetFraneCloseToCheckMasterCall(serialNumber);
+				GetFrameWithCrc16(frame);
+
+				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+				ioPort(resFramePax, outDataPax);
+				response = GetBinaryOutData(outDataPax);
+
+				frame.clear();
+				serialNumber.clear();
+				outDataPax = "";
+				resFramePax = "";
+				outDataTCP.clear();
+				inDataTCP.clear();
+			}
+			break;
+		default:
+			loop = false;
+			GetLastResponsePax(response, lastResponsePax, 9);
+
+			resFramePax = "\u0006";
+
+			ioPort(resFramePax, outDataPax);
+			response = GetBinaryOutData(outDataPax);
+
+			while (true)
+			{
+				if (response[0] == 128)
+				{
+					GetLastResponsePax(response, lastResponsePax, 9);
+
+					resFramePax = "\u0006";
+
+					ioPort(resFramePax, outDataPax);
+					response = GetBinaryOutData(outDataPax);
+
+					frame.clear();
+					outDataPax = "";
+					resFramePax = "";
+
+					GetLastResponsePax(response, lastResponsePax, 2);
+
+					resFramePax = "\u0007";
+
+					ioPort(resFramePax, outDataPax);
+					response = GetBinaryOutData(outDataPax);
+
+					frame.clear();
+					outDataPax = "";
+					resFramePax = "";
+				}
+				else
+				{
+					GetLastResponsePax(response, lastResponsePax, 2);
+					break;
+				}
+			}
+			break;
+		}
+	}
+
+	std::string strCheck(check.begin(), check.end());
+	check.clear();
+	str = strCheck;
+
+	return 0;
+}
+
+int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
@@ -493,8 +768,27 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, runCardAuth);
+	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str, runCardAuth);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	outData = "";
+	response.clear();
+	return 0;
+}
+
+int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
+{
+	std::string outData = "";
+	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
+
+	GetFrameWithCrc16(frame);
+
+	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+	ioPort(resFrame, outData);
+
+	std::vector<unsigned char> response = GetBinaryOutData(outData);
+	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str);
 
 	outData = "";
 	response.clear();
@@ -534,7 +828,7 @@ void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector
 	buffer.clear();
 
 	std::cout << "\nresRecCard.NumberCard" << std::endl;
-	LoopForParsResponseResCard(buffer, lastResponsePax, 4, index);
+	LoopForParsResponseResCard(buffer, lastResponsePax, 20, index);
 	resRecCard[NUMBER_CARD] = buffer;
 	buffer.clear();
 
@@ -590,14 +884,37 @@ void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector
 	std::cout << std::hex << std::uppercase << int(lastResponsePax[index]) << " ";
 	resRecCard[CARD_ID] = buffer;
 	buffer.clear();
+	std::cout << std::endl;
 }
 
 void LoopForParsResponseResCard(std::vector<unsigned char>& buffer, std::vector<unsigned char>& lastResponsePax, int stopIter, int& index)
 {
 	for (int i = 0; i < stopIter; i++)
 	{
-		buffer.push_back(lastResponsePax[i]);
-		std::cout << std::hex << std::uppercase << int(lastResponsePax[i]) << " ";
+		buffer.push_back(lastResponsePax[index]);
+		std::cout << std::hex << std::uppercase << int(lastResponsePax[index]) << " ";
 		index++;
 	}
+}
+
+inline std::string getCurrentDateTime(std::string s)
+{
+	time_t now = time(0);
+	struct tm  tstruct;
+	char  buf[80];
+	tstruct = *localtime(&now);
+	if (s == "now")
+		strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+	else if (s == "date")
+		strftime(buf, sizeof(buf), "%Y-%m-%d", &tstruct);
+	return std::string(buf);
+}
+
+inline void Logger(std::string logMsg)
+{
+	std::string filePath = "log_" + getCurrentDateTime("date") + ".txt";
+	std::string now = getCurrentDateTime("now");
+	std::ofstream ofs(filePath.c_str(), std::ios_base::out | std::ios_base::app);
+	ofs << now << '\t' << logMsg << '\n';
+	ofs.close();
 }

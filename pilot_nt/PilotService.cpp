@@ -26,11 +26,20 @@ int PilotService::close_day(auth_answer* auth_answer)
 	auth_answer->TType = OP_PIL_OT_TOTALS;
 	std::vector<unsigned char> lastResponsePax;
 
-	StartWork(*auth_answer, lastResponsePax, runCardAuth);
+	StartWork(*auth_answer, lastResponsePax, str);	
+
+	rStr = str;
+	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+	auth_answer->Check = &rStr[0];
+
+	for (int i = 0; i < 400; i++)
+		std::cout << auth_answer->Check[i];
+
+	std::cout << std::endl;
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
-	return RCode;
+	return 0;
 }
 
 int PilotService::card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut)
@@ -47,7 +56,17 @@ int PilotService::card_authorize15(const char* track2, auth_answer14* auth_answe
 		track = track2;
 
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	StartWork(auth_answer->ans, lastResponsePax, runCardAuth);
+	StartWork(auth_answer->ans, lastResponsePax, str, runCardAuth);
+
+	rStr = str;
+	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+	auth_answer->ans.Check = &rStr[0];
+
+	for (int i = 0; i < 400; i++)
+		std::cout << auth_answer->ans.Check[i];
+
+	std::cout << std::endl;
+
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
@@ -285,7 +304,14 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut)
 	argument.Amount = 0;
 	argument.CType = 0;
 
-	StartWork(argument, lastResponsePax, runCardAuth);
+	StartWork(argument, lastResponsePax, str);
+
+	rStr = str;
+	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+	argument.Check = &rStr[0];
+
+	for (int i = 0; i < 400; i++)
+		std::cout << argument.Check[i];
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
@@ -317,7 +343,14 @@ int PilotService::CommitTrx(DWORD dwAmount, char* pAuthCode)
 	argument.TType = OP_COMMIT;
 	argument.Amount = dwAmount;
 
-	StartWork(argument, lastResponsePax, runCardAuth);
+	StartWork(argument, lastResponsePax, str);
+	
+	rStr = str;
+	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+	argument.Check = &rStr[0];
+
+	for (int i = 0; i < 400; i++)
+		std::cout << argument.Check[i];
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
@@ -337,7 +370,14 @@ int PilotService::RollbackTrx(DWORD dwAmount, char* pAuthCode)
 	argument.TType = OP_ROLLBACK;
 	argument.Amount = dwAmount;
 
-	StartWork(argument, lastResponsePax, runCardAuth);
+	StartWork(argument, lastResponsePax, str);
+	
+	rStr = str;
+	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+	argument.Check = &rStr[0];
+
+	for (int i = 0; i < 400; i++)
+		std::cout << argument.Check[i];
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
@@ -357,7 +397,14 @@ int PilotService::SuspendTrx(DWORD dwAmount, char* pAuthCode)
 	argument.TType = OP_SUSPEND;
 	argument.Amount = dwAmount;
 
-	StartWork(argument, lastResponsePax, runCardAuth);
+	StartWork(argument, lastResponsePax, str);
+	
+	rStr = str;
+	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+	argument.Check = &rStr[0];
+
+	for (int i = 0; i < 400; i++)
+		std::cout << argument.Check[i];
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);

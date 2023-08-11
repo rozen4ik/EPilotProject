@@ -14,10 +14,11 @@ void open_port(HANDLE* hSerial)
     int speed = std::stoi(settings["Speed"]);
     LPCTSTR sPortName = nPort.c_str();
 
-    std::cout << settings["ComPort"] << std::endl;
-    std::cout << speed << std::endl;
+    //int speed = 115200;
+    //LPCTSTR sPortName = L"COM2";
 
-    //read_ini_file(sPortName, speed);
+    //std::cout << settings["ComPort"] << std::endl;
+    //std::cout << speed << std::endl;
 
 	*hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     //*hSerial = CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);

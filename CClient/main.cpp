@@ -32,8 +32,6 @@ int main()
 					std::cout << std::hex << std::uppercase << int(c);
 				std::cout << std::endl;
 
-				Done();
-
 				//if (argument1.Check)
 				//	::GlobalFree(argument1.Check);
 				break;
