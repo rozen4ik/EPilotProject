@@ -795,6 +795,49 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 	return 0;
 }
 
+int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
+{
+	std::string outData = "";
+	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	GetFrameWithCrc16(frame);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+	ioPort(resFrame, outData);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	std::vector<unsigned char> response = GetBinaryOutData(outData);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+	BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str, runCardAuth);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	outData = "";
+	response.clear();
+	return 0;
+}
+
+int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
+{
+	std::string outData = "";
+	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
+
+	GetFrameWithCrc16(frame);
+
+	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+
+	ioPort(resFrame, outData);
+
+	std::vector<unsigned char> response = GetBinaryOutData(outData);
+	BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str);
+
+	outData = "";
+	response.clear();
+	return 0;
+}
+
 void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex)
 {
 	for (int i = startIndex; i < response.size() - 2; i++)

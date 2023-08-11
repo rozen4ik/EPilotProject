@@ -25,7 +25,7 @@ int main()
 				auth_answer argument1;
 				memset(&argument1, 0, sizeof(argument1));
 
-				error = close_day(&argument1);;
+				error = _close_day(&argument1);;
 
 				std::cout << argument1.RCode << std::endl;
 				for (char c : argument1.RCode)
@@ -41,7 +41,7 @@ int main()
 				argument2.ans.Amount = 10000;
 				argument2.ans.TType = OP_PURCHASE;
 
-				error = card_authorize15(NULL, &argument2, NULL, 0, 0);
+				error = _card_authorize15(NULL, &argument2, NULL, 0, 0);
 
 				//if (argument2.ans.Check)
 				//	::GlobalFree(argument2.ans.Check);
@@ -52,16 +52,16 @@ int main()
 				argument3.ans.Amount = 10000;
 				argument3.ans.TType = OP_RETURN;
 
-				error = card_authorize15(NULL, &argument3, NULL, 0, 0);
+				error = _card_authorize15(NULL, &argument3, NULL, 0, 0);
 
 				//if (argument3.ans.Check)
 				//	::GlobalFree(argument3.ans.Check);
 				break;
 			case 4:
-				error = ReadCardContext(0);
+				error = _ReadCardContext(0);
 				break;
 			case 5:
-				error = RollbackTrx(10000, NULL);
+				error = _RollbackTrx(10000, NULL);
 				break;
 			default:
 				loop = false;
