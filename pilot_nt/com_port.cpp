@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include "PacketProcessing.h"
 
 
 void open_port(HANDLE* hSerial)
@@ -14,22 +15,18 @@ void open_port(HANDLE* hSerial)
     int speed = std::stoi(settings["Speed"]);
     LPCTSTR sPortName = nPort.c_str();
 
-    //int speed = 115200;
-    //LPCTSTR sPortName = L"COM2";
-
-    //std::cout << settings["ComPort"] << std::endl;
-    //std::cout << speed << std::endl;
-
 	*hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    //*hSerial = CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
     if (*hSerial == INVALID_HANDLE_VALUE)
     {
         if (GetLastError() == ERROR_FILE_NOT_FOUND)
         {
-            std::cout << "Ќевозможно открыть последовательный порт.\n";
+            Logger("Ќевозможно открыть последовательный порт");
+            //std::cout << "Ќевозможно открыть последовательный порт.\n";
         }
-        std::cout << "some other error occurred.\n";
+        Logger("some other error occurred.");
+        //exit(EXIT_FAILURE);
+        //std::cout << "some other error occurred.\n";
     }
 
     SetCommMask(*hSerial, EV_RXCHAR);
@@ -47,7 +44,8 @@ void open_port(HANDLE* hSerial)
 
     if (!GetCommState(*hSerial, &dcb))
     {
-        std::cout << "getting state error\n";
+        Logger("getting state error");
+        //std::cout << "getting state error\n";
     }
     dcb.BaudRate = speed;
     dcb.fBinary = 1;
@@ -71,7 +69,8 @@ void open_port(HANDLE* hSerial)
     
     if (!SetCommState(*hSerial, &dcb))
     {
-        std::cout << "error setting serial port state\n";
+        Logger("error setting serial port state");
+        //std::cout << "error setting serial port state\n";
     }
 }
 
@@ -144,6 +143,13 @@ void getSettingsForPinpad(std::unordered_map<std::string, std::string>& settings
 
     in.close();
 
-    settings["ComPort"] = "COM" + comPort;
-    settings["Speed"] = speed;
+    if (std::stoi(comPort) <= 9)
+        settings["ComPort"] = "COM" + comPort;
+    else
+        settings["ComPort"] = "\\\\.\\COM" + comPort;
+    settings["Speed"] = speed; 
+    Logger(settings["ComPort"]);
+    Logger(settings["Speed"]);
+    //std::cout << speed << std::endl;
+    //std::cout << settings["Speed"] << std::endl;
 }

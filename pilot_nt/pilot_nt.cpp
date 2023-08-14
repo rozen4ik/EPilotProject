@@ -21,7 +21,7 @@ int _close_day(auth_answer* auth_answer)
 
 int _card_authorize(char* track2, auth_answer* auth_answer)
 {
-	return 0;
+	return pService.card_authorize(track2, auth_answer);
 }
 
 int _card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut)

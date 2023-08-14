@@ -116,7 +116,8 @@ int GetSizeBuff(std::vector<unsigned char>& response)
 {
 	unsigned char arrSizeBuff[] = { response[14], response[15] };
 	int sizeBuff = *((unsigned short*)arrSizeBuff);
-	std::cout << "Размер буфера: " << std::dec << sizeBuff << " байт" << std::endl;
+	Logger("Размер буфера: " + sizeBuff);
+	//std::cout << "Размер буфера: " << std::dec << sizeBuff << " байт" << std::endl;
 	return sizeBuff;
 }
 
@@ -208,7 +209,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 			if (codeDevice == 25)
 			{
 				outDataTCP.clear();
-				std::cout << "Чтение данных TCP" << std::endl;
+				Logger("Чтение данных TCP");
+				//std::cout << "Чтение данных TCP" << std::endl;
 				readTCP(server, outDataTCP, GetSizeBuff(response), addr, ip, port);
 
 				for (char c : outDataTCP)
@@ -243,8 +245,9 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				HANDLE hSerialPort;
 				open_port(&hSerialPort);
-				std::cout << "Запись данных ComPort" << std::endl;
-				std::cout << resFramePax << std::endl;
+				Logger("-> " + resFramePax);
+				//std::cout << "Запись данных ComPort" << std::endl;
+				//std::cout << resFramePax << std::endl;
 				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
 				close_port(&hSerialPort);
 
@@ -314,7 +317,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 					}
 				}
 
-				std::cout << "Запись данных TCP" << std::endl;
+				Logger("Запись данных TCP");
+				//std::cout << "Запись данных TCP" << std::endl;
 				writeTCP(server, inDataTCP, inDataTCP.size());
 
 				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
@@ -515,7 +519,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 			if (codeDevice == 25)
 			{
 				outDataTCP.clear();
-				std::cout << "Чтение данных TCP" << std::endl;
+				Logger("Чтение данных TCP");
+				//std::cout << "Чтение данных TCP" << std::endl;
 				readTCP(server, outDataTCP, GetSizeBuff(response), addr, ip, port);
 
 				for (char c : outDataTCP)
@@ -550,8 +555,9 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				HANDLE hSerialPort;
 				open_port(&hSerialPort);
-				std::cout << "Запись данных ComPort" << std::endl;
-				std::cout << resFramePax << std::endl;
+				Logger("-> " + resFramePax);
+				//std::cout << "Запись данных ComPort" << std::endl;
+				//std::cout << resFramePax << std::endl;
 				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
 				close_port(&hSerialPort);
 
@@ -621,7 +627,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 					}
 				}
 
-				std::cout << "Запись данных TCP" << std::endl;
+				Logger("Запись данных TCP");
+				//std::cout << "Запись данных TCP" << std::endl;
 				writeTCP(server, inDataTCP, inDataTCP.size());
 
 				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
@@ -961,3 +968,4 @@ inline void Logger(std::string logMsg)
 	ofs << now << '\t' << logMsg << '\n';
 	ofs.close();
 }
+

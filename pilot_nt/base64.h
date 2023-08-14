@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-typedef unsigned char BYTE;
 
-std::string base64_encode(BYTE const* buf, unsigned int bufLen);
-std::vector<BYTE> base64_decode(std::string const&);
+std::string base64_encode(unsigned char const* buf, unsigned int bufLen);
+std::vector<unsigned char> base64_decode(std::string const&);
