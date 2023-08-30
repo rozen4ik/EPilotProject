@@ -26,24 +26,34 @@ int PilotService::close_day(auth_answer* auth_answer)
 	Logger("\nclose_day");
 	//std::cout << "\nclose_day" << std::endl;
 
-	auth_answer->TType = OP_PIL_OT_TOTALS;
 	std::vector<unsigned char> lastResponsePax;
 
 	StartWork(*auth_answer, lastResponsePax, str);	
 
+	std::cout << "SizeOf ammessage: " << sizeof(auth_answer->AMessage) << std::endl;
+
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
-	auth_answer->Check = &rStr[0];
-
-	for (int i = 0; i < 400; i++)		
-		std::cout << auth_answer->Check[i];
-
-	std::cout << std::endl;
+	auth_answer->Check = rStr.data();
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
+
+	for (int i = 0; i < 3; i++)
+		auth_answer->RCode[i] = std::to_string(RCode)[i];
+
+	std::string result;
+
+	if (RCode == 0)
+		result = "Одобрено";
+	else
+		result = "Отклонено";
+
+	for (int i = 0; i < 16; i++)
+		auth_answer->AMessage[i] = result[i];
+
 	Logger("End Command");
-	return 0;
+	return RCode;
 }
 
 int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)

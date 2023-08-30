@@ -166,12 +166,12 @@ typedef struct
 /// Функция проверяет наличие пинпада. При успешном выполнении возвращает 0 (пинпад подключен), при неудачном – код ошибки (пинпад не подключен или неисправен). 
 /// </summary>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _TestPinpad();
+extern "C" PILOT_NT_API int __cdecl _TestPinpad();
 
 /// <summary>
 /// Закрытие дня.  
 /// </summary>/// <param name="auth_answer">Поля TType, Amount, CType заполнять не нужно.</param>/// <returns>int Код ошибки.</returns>
-extern "C" PILOT_NT_API int _close_day(auth_answer* auth_answer);
+extern "C" PILOT_NT_API int __cdecl _close_day(auth_answer* auth_answer);
 
 /// <summary>
 /// Выполнение операций по картам 
@@ -179,7 +179,7 @@ extern "C" PILOT_NT_API int _close_day(auth_answer* auth_answer);
 /// <param name="track2">данные дорожки карты с магнитной полосой. Если NULL, то будет предложено считать карту.</param>
 /// <param name="auth_answer">auth_answer Основные параметры операции. См. auth_answer </param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _card_authorize(char* track2, auth_answer* auth_answer);
+extern "C" PILOT_NT_API int __cdecl _card_authorize(char* track2, auth_answer* auth_answer);
 
 /// <summary>
 /// Выполнение операций по картам 
@@ -193,27 +193,27 @@ extern "C" PILOT_NT_API int _card_authorize(char* track2, auth_answer* auth_answ
 /// <param name="dataInt">см. ctxAlloc</param>
 /// <param name="dataOut">см. ctxAlloc</param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut);
+extern "C" PILOT_NT_API int __cdecl _card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut);
 
 /// <summary>
 /// Создать контекст операции. Функция создает пустой контекст операции. 
 /// </summary>
 /// <returns>CONTEXT_PTR Идентификатор контекста операции или 0, если произошла ошибка </returns>
-extern "C" PILOT_NT_API CONTEXT_PTR _ctxAlloc();
+extern "C" PILOT_NT_API CONTEXT_PTR __cdecl _ctxAlloc();
 
 /// <summary>
 /// Отчистить контекст. Функция удаляет все параметры из контекста. 
 /// </summary>
 /// <param name="ctx">Идентификатор контекста. </param>
 /// <returns></returns>
-extern "C" PILOT_NT_API void _ctxClear(CONTEXT_PTR ctx);
+extern "C" PILOT_NT_API void __cdecl _ctxClear(CONTEXT_PTR ctx);
 
 /// <summary>
 ///Удалить контекст операции 
 /// </summary>
 /// <param name="ctx">Идентификатор контекста.</param>
 /// <returns></returns>
-extern "C" PILOT_NT_API void _ctxFree(CONTEXT_PTR ctx);
+extern "C" PILOT_NT_API void __cdecl _ctxFree(CONTEXT_PTR ctx);
 
 /// <summary>
 /// Считать из контекста значение переменной в виде последовательности байт. 
@@ -227,7 +227,7 @@ extern "C" PILOT_NT_API void _ctxFree(CONTEXT_PTR ctx);
 /// <param name="pOutSz">Количество байт, скопированных в буфер.</param>
 /// <param name="MAXSIZE">Максимально возможное количество байт. </param>
 /// <returns>int Код ошибки. ERR_OK - переменная считана успешно. ERR_CTX_GET - ошибка получения переменной. </returns>
-extern "C" PILOT_NT_API int _ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* pVal, int* pOutSz, int MAXSIZE);
+extern "C" PILOT_NT_API int __cdecl _ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* pVal, int* pOutSz, int MAXSIZE);
 
 /// <summary>
 /// Считать из контекста значение переменной в виде целого числа. 
@@ -239,7 +239,7 @@ extern "C" PILOT_NT_API int _ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, 
 /// <param name="name">Идентификатор параметра. </param>
 /// <param name="pVal">Указатель на число.</param>
 /// <returns>int Код ошибки. ERR_OK - переменная считана успешно. ERR_CTX_GET - ошибка получения переменной. </returns>
-extern "C" PILOT_NT_API int _ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal);
+extern "C" PILOT_NT_API int __cdecl _ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal);
 
 /// <summary>
 /// Считать из контекста значение переменной в виде строки. 
@@ -252,7 +252,7 @@ extern "C" PILOT_NT_API int _ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int
 /// <param name="str">Указатель на строку. </param>
 /// <param name="sz">Максимально возможная длина строки. </param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz);
+extern "C" PILOT_NT_API int __cdecl _ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz);
 
 /// <summary>
 /// Записать в контекст значение параметра в виде последовательности байт. 
@@ -262,7 +262,7 @@ extern "C" PILOT_NT_API int _ctxGetString(CONTEXT_PTR ctx, EParameterName name, 
 /// <param name="val">Указатель на буфер. </param>
 /// <param name="sz">Длина буфера. </param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz);
+extern "C" PILOT_NT_API int __cdecl _ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz);
 
 /// <summary>
 /// Записать в контекст значение целочисленного параметра. 
@@ -271,8 +271,8 @@ extern "C" PILOT_NT_API int _ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, 
 /// <param name="name">Идентификатор параметра. </param>
 /// <param name="val">Значение параметра. </param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val);
-
+extern "C" PILOT_NT_API int __cdecl _ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val);
+ 
 /// <summary> 
 /// Записать в контекст значение строкового параметра. 
 /// </summary>
@@ -280,14 +280,14 @@ extern "C" PILOT_NT_API int _ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int
 /// <param name="name">Идентификатор параметра.</param>
 ///  <param name="str">Указатель на строку. </param>
 ///  <returns>int Код ошибки</returns>
-extern "C" PILOT_NT_API int _ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str);
+extern "C" PILOT_NT_API int __cdecl _ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str);
 
 /// <summary>
 /// Чтение карты Если требуется чтение нестандартных карт, например карт лояльности на базе Mifare или Google VAS, в контекст операции должен быть передан соответсвующий тип карты.
 /// </summary>
 /// <param name="dataOut">Контекст операции, в которую копируются pan, хэш, тип карты, признак "Карта выпущена Сбербанком", номер программы лояльности, признаки считывания VAS и т.п.</param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _ReadCardContext(CONTEXT_PTR dataOut);
+extern "C" PILOT_NT_API int __cdecl _ReadCardContext(CONTEXT_PTR dataOut);
 
 /// <summary>
 /// Функция возвращает последнюю успешную транзакцию в «нормальное» состояние. 
@@ -299,7 +299,7 @@ extern "C" PILOT_NT_API int _ReadCardContext(CONTEXT_PTR dataOut);
 /// <param name="dwAmount">Сумма операции (в копейках)</param>
 /// <param name="pAuthCode">Код авторизации.</param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _CommitTrx(DWORD dwAmount, char* pAuthCode);
+extern "C" PILOT_NT_API int __cdecl _CommitTrx(DWORD dwAmount, char* pAuthCode);
 
 /// <summary>
 /// Функция вызывает немедленную отмену последней успешной операции 
@@ -311,7 +311,7 @@ extern "C" PILOT_NT_API int _CommitTrx(DWORD dwAmount, char* pAuthCode);
 ///<param name="dwAmount">Сумма операции (в копейках) </param> 
 /// <param name="pAuthCode">Код авторизации.</param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _RollbackTrx(DWORD dwAmount, char* pAuthCode);
+extern "C" PILOT_NT_API int __cdecl _RollbackTrx(DWORD dwAmount, char* pAuthCode);
 
 /// <summary>
 /// Функция переводит последнюю успешную транзакцию в «подвешенное» состояние. 
@@ -322,7 +322,7 @@ extern "C" PILOT_NT_API int _RollbackTrx(DWORD dwAmount, char* pAuthCode);
 /// <param name="dwAmount">Сумма операции (в копейках) </param>
 /// <param name="pAuthCode">Код авторизации. </param>
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _SuspendTrx(DWORD dwAmount, char* pAuthCode);
+extern "C" PILOT_NT_API int __cdecl _SuspendTrx(DWORD dwAmount, char* pAuthCode);
 
 /// <summary>
 /// Функция прерывает работу функций card_authorizeX() 
@@ -330,10 +330,10 @@ extern "C" PILOT_NT_API int _SuspendTrx(DWORD dwAmount, char* pAuthCode);
 /// При этом функция card_authorize…() завершится с кодом ошибки 2000 (операция прервана). 
 /// </summary> 
 /// <returns>int Код ошибки. </returns>
-extern "C" PILOT_NT_API int _AbortTransaction();
+extern "C" PILOT_NT_API int __cdecl _AbortTransaction();
 
 /// <summary>
 /// Выполняется отключение от библиотеки gate.dll 
 /// </summary>
 /// <returns></returns>
-extern "C" PILOT_NT_API void _Done();
+extern "C" PILOT_NT_API void __cdecl _Done();

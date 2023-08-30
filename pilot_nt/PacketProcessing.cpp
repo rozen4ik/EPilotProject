@@ -131,7 +131,7 @@ void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::v
 
 void GetRowCheck(std::vector<unsigned char>& response, std::vector<unsigned char>& check)
 {
-	for (int i = 15; i < response.size() - 2; i++)
+	for (int i = 15; i < response.size() - 3; i++)
 	{
 		check.push_back(response[i]);
 	}
@@ -338,6 +338,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 			}
 			else if (codeDevice == 3)
 			{
+				GetRowCheck(response, check);
+
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameWriteToCheckMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -345,9 +347,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
 				ioPort(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				GetRowCheck(response, check);
+				response = GetBinaryOutData(outDataPax);				
 
 				frame.clear();
 				serialNumber.clear();
@@ -442,6 +442,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 		}
 	}
 
+	check.push_back('\0');
 	std::string strCheck(check.begin(), check.end());
 	check.clear();
 	str = strCheck;
@@ -648,6 +649,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 			}
 			else if (codeDevice == 3)
 			{
+				GetRowCheck(response, check);
+
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameWriteToCheckMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -656,9 +659,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				ioPort(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
-
-				GetRowCheck(response, check);
-
+				
 				frame.clear();
 				serialNumber.clear();
 				outDataPax = "";
@@ -752,6 +753,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 		}
 	}
 
+	check.push_back('\0');
 	std::string strCheck(check.begin(), check.end());
 	check.clear();
 	str = strCheck;
