@@ -12,7 +12,9 @@ int PilotService::TestPinpad()
 	GetFrameWithCrc16(frame);
 
 	std::string resFrame = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
+	Logger("До чтение ini");
 	ioPort(resFrame, outData);
+	Logger("После чтение ini");
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
 	Logger("End Command");

@@ -64,7 +64,7 @@ int main()
 				//	::GlobalFree(argument3.ans.Check);
 				break;
 			case 4:
-				_ctxAlloc();
+				//CONTEXT_PTR ctx = _ctxAlloc();
 				error = _ReadCardContext(0);
 				break;
 			case 5:

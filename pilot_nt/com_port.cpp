@@ -10,7 +10,7 @@ void open_port(HANDLE* hSerial)
 {
     std::unordered_map<std::string, std::string>settings;
     getSettingsForPinpad(settings);
-
+    std::cout << "Данные из ини файла получены" << std::endl;
     std::wstring nPort(settings["ComPort"].begin(), settings["ComPort"].end());
     int speed = std::stoi(settings["Speed"]);
     LPCTSTR sPortName = nPort.c_str();
@@ -120,8 +120,22 @@ void getSettingsForPinpad(std::unordered_map<std::string, std::string>& settings
     std::string comPort;
     std::string speed;
     size_t index = 0;
+    //std::string IniFile;
+    //DWORD iSize;
+    //char buff[1024];
+
+    //BOOL res = ReadFile("pinpad.ini", &buff, sizeof(buff), &iSize, NULL);
+    //
+    //if (res)
+    //    IniFile = std::string(buff);
+    //else
+    //    Logger("Файл не удалось прочитать");
+
+    //std::cout << IniFile << std::endl;
+
 
     std::ifstream in("pinpad.ini");
+
     if (in.is_open())
     {
         while (std::getline(in, line))
