@@ -28,7 +28,7 @@ int __cdecl _card_authorize(char* track2, auth_answer* auth_answer)
 
 int __cdecl _card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut)
 {
-	return pService.card_authorize15(track2, auth_answer, payinfo, dataIn, dataOut);
+	return pService.card_authorize15(track2, *auth_answer, *payinfo, dataIn, dataOut, check);
 }
 
 CONTEXT_PTR __cdecl _ctxAlloc()

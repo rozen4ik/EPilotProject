@@ -22,7 +22,7 @@ public:
 	int TestPinpad();
 	int close_day(auth_answer& auth_answer, std::string& check);
 	int card_authorize(const char* track2, auth_answer* auth_answer);
-	int card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut);
+	int card_authorize15(const char* track2, auth_answer14& auth_answer, payment_info_item& payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut, std::string& check);
 	CONTEXT_PTR ctxAlloc();
 	void ctxClear(CONTEXT_PTR ctx);
 	void ctxFree(CONTEXT_PTR ctx);

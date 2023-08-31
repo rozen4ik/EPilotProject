@@ -10,6 +10,7 @@ int main()
 
 	while (loop)
 	{
+		std::cout << std::endl;
 		std::cout << "1 - Закрыть смену" << std::endl;
 		std::cout << "2 - Произвести оплату" << std::endl;
 		std::cout << "3 - Возврат" << std::endl;
@@ -37,15 +38,6 @@ int main()
 
 				std::cout << std::endl;
 
-				std::cout << std::endl;
-				std::cout << "SizeOf argument: " << sizeof(argument1) << std::endl;
-				std::cout << "SizeOf ttype: " << sizeof(argument1.TType) << std::endl;
-				std::cout << "SizeOf amount: " << sizeof(argument1.Amount) << std::endl;
-				std::cout << "SizeOf rcode: " << sizeof(argument1.RCode) << std::endl;
-				std::cout << "SizeOf ammessage: " << sizeof(argument1.AMessage) << std::endl;
-				std::cout << "SizeOf ctype: " << sizeof(argument1.CType) << std::endl;
-				std::cout << "SizeOf check: " << sizeof(argument1.Check) << std::endl;
-
 				//if (argument1.Check)
 				//	::GlobalFree(argument1.Check);
 				break;
@@ -72,6 +64,7 @@ int main()
 				//	::GlobalFree(argument3.ans.Check);
 				break;
 			case 4:
+				_ctxAlloc();
 				error = _ReadCardContext(0);
 				break;
 			case 5:

@@ -22,21 +22,11 @@ int PilotService::TestPinpad()
 
 int PilotService::close_day(auth_answer& auth_answer, std::string& check)
 {
-	std::cout << "0) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
-	std::cout << "0) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;	
+	check = "";
 	this->TestPinpad();
-	std::cout << "1) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
-	std::cout << "1) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 	Logger("\nclose_day");
-	//std::cout << "\nclose_day" << std::endl;
-	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
-	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 	std::vector<unsigned char> lastResponsePax;
-	std::cout << "1) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
-	std::cout << "1) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 	StartWork(auth_answer, lastResponsePax, str);	
-	std::cout << "3) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
-	std::cout << "3) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -45,9 +35,6 @@ int PilotService::close_day(auth_answer& auth_answer, std::string& check)
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
-
-	std::cout << "4) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
-	std::cout << "4) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 
 	for (int i = 0; i < 3; i++)
 		auth_answer.RCode[i] = std::to_string(RCode)[i];
@@ -73,7 +60,6 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 	this->TestPinpad();
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 	Logger("\ncard_authorize");
-	//std::cout << "\ncard_authorize" << std::endl;
 	std::string track;
 	std::vector<unsigned char> lastResponsePax;
 
@@ -101,14 +87,14 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 	return RCode;
 }
 
-int PilotService::card_authorize15(const char* track2, auth_answer14* auth_answer, payment_info_item* payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut)
+int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answer, payment_info_item& payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut, std::string& check)
 {
+	check = "";
 	runCardAuth["cardAuth15"] = 1;
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	this->TestPinpad();
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	Logger("\ncard_authorize15");
-	//std::cout << "\ncard_authorize15" << std::endl;
 	std::string track;
 	std::vector<unsigned char> lastResponsePax;
 
@@ -116,16 +102,12 @@ int PilotService::card_authorize15(const char* track2, auth_answer14* auth_answe
 		track = track2;
 
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	StartWork(auth_answer->ans, lastResponsePax, str, runCardAuth);
+	StartWork(auth_answer.ans, lastResponsePax, str, runCardAuth);
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
-	auth_answer->ans.Check = &rStr[0];
-
-	for (int i = 0; i < 400; i++)
-		std::cout << auth_answer->ans.Check[i];
-
-	std::cout << std::endl;
+	check = rStr;
+	auth_answer.ans.Check = check.data();
 
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
@@ -134,38 +116,45 @@ int PilotService::card_authorize15(const char* track2, auth_answer14* auth_answe
 	ParsingResponseResCard(resRecCard, lastResponsePax);
 
 	for (int i = 0; i < 7; i++)
-		auth_answer->AuthCode[i] = resRecCard[CODE_AUTH][i];
+		auth_answer.AuthCode[i] = resRecCard[CODE_AUTH][i];
 
 	for (int i = 0; i < 20; i++)
-		auth_answer->CardID[i] = resRecCard[NUMBER_CARD][i];
+		auth_answer.CardID[i] = resRecCard[NUMBER_CARD][i];
 
-	auth_answer->ErrorCode = RCode;
-
-	for (int i = 0; i < 4; i++)
-		auth_answer->TransDate[i] = resRecCard[DATE_OPERATION][i];
+	auth_answer.ErrorCode = RCode;
 
 	for (int i = 0; i < 4; i++)
-		auth_answer->TransDate[i] = resRecCard[TIME_OPERATION][i];
+		auth_answer.TransDate[i] = resRecCard[DATE_OPERATION][i];
+
+	for (int i = 0; i < 4; i++)
+		auth_answer.TransDate[i] = resRecCard[TIME_OPERATION][i];
 
 	std::string transNumber(resRecCard[NUMBER_OPERATION_DAY].begin(), resRecCard[NUMBER_OPERATION_DAY].end());
-	auth_answer->TransNumber = std::stoi(transNumber);
+	auth_answer.TransNumber = std::stoi(transNumber);
 
-	auth_answer->SberOwnCard = resRecCard[BANK_AFFILIATION][0];
+	auth_answer.SberOwnCard = resRecCard[BANK_AFFILIATION][0];
 
 	for (int i = 0; i < 20; i++)
-		auth_answer->Hash[i] = resRecCard[HASH_CARD][i];
+		auth_answer.Hash[i] = resRecCard[HASH_CARD][i];
 
 	for (int i = 0; i < 13; i++)
-		auth_answer->RRN[i] = resRecCard[RRN][i];
+		auth_answer.RRN[i] = resRecCard[RRN][i];
 
 	for (int i = 0; i < 32; i++)
-		auth_answer->CardName[i] = resRecCard[NAME_CARD][i];
+		auth_answer.CardName[i] = resRecCard[NAME_CARD][i];
 
 	for (int i = 0; i < 2; i++)
-		auth_answer->ans.RCode[i] = resRecCard[ERROR_CODE][i];
+		auth_answer.ans.RCode[i] = resRecCard[ERROR_CODE][i];
+
+	std::string result;
+
+	if (RCode == 0)
+		result = "Одобрено";
+	else
+		result = "Отклонено";
 
 	for (int i = 0; i < 16; i++)
-		auth_answer->ans.AMessage[i] = resRecCard[TEXT_MESSAGE_ERROR][i];
+		auth_answer.ans.AMessage[i] = result[i];
 
 	//std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> list = DTagExtraData[dataOut];
 	//std::unordered_map<std::string, std::vector<unsigned char>> uMap =
@@ -189,8 +178,8 @@ CONTEXT_PTR PilotService::ctxAlloc()
 	CONTEXT_PTR ctx = 0;
 	CONTEXT_PTR addr = (CONTEXT_PTR)&ctx;
 
-	Logger("Создан контекст по адресу: " + addr);
-	//std::cout << "Создан контекст по адресу: " << addr << std::endl;
+	//Logger("Создан контекст по адресу: " + addr);
+	std::cout << "Создан контекст по адресу: " << addr << std::endl;
 
 	auth_answer14 argument;
 	memset(&argument, 0, sizeof(argument));
