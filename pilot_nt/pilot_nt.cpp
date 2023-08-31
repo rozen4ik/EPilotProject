@@ -16,7 +16,9 @@ int __cdecl _TestPinpad()
 
 int __cdecl _close_day(auth_answer* auth_answer)
 {
-	return pService.close_day(auth_answer);
+	std::cout << "_close_day SizeOf argument: " << sizeof(*auth_answer) << std::endl;
+	std::cout << "_close_day SizeOf ammessage: " << sizeof(auth_answer->AMessage) << std::endl;
+	return pService.close_day(*auth_answer, check);
 }
 
 int __cdecl _card_authorize(char* track2, auth_answer* auth_answer)

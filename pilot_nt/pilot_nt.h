@@ -2,6 +2,7 @@
 
 #include "paramsln.h"
 #include <windows.h>
+#include <string>
 
 #ifdef PILOT_NT_EXPORTS
 #define PILOT_NT_API __declspec(dllexport)
@@ -112,6 +113,8 @@ struct payment_info_item
  /** @struct auth_answer
   *  @brief Основные параметры операции.
   */
+
+#pragma pack(push, 1)
 typedef struct 
 {
     int TType;             /**< [in] тип операции. см ::OpetationTypes */
@@ -121,6 +124,7 @@ typedef struct
     int  CType;            /**< [in,out] тип карты                       */
     char* Check;           /**< [out] образ чека, должен освобождаться GlobalFree в вызывающей программе */
 } auth_answer;
+#pragma pack(pop)
 
 /** @struct auth_answer14
  *  @brief Расширение card_authorize13 возможностью указать информацию о товаре.
@@ -160,6 +164,8 @@ typedef struct
     char   GoodsCode[MAX_GOODS_CODE + 1]; /**< [in] Код товара во внешней системе.*/
     char   GoodsName[MAX_GOODS_NAME]; /**< [in] Наименование товара во внешней системе. Внимание! В структуре auth_answer14 название товара на один символ короче чем в gate.dll TGoodsData. Зафиксируем эту ошибку как стандарт*/
 } auth_answer14;
+
+extern "C" static std::string check;
 
 /// <summary>
 /// Проверка готовности пинпада 

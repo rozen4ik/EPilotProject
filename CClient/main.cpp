@@ -25,6 +25,8 @@ int main()
 				auth_answer argument1;
 				memset(&argument1, 0, sizeof(argument1));
 				argument1.TType = 7;
+				std::cout << "SizeOf ammessage: " << sizeof(argument1.AMessage) << std::endl;
+
 
 				error = _close_day(&argument1);;
 

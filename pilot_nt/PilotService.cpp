@@ -20,27 +20,37 @@ int PilotService::TestPinpad()
 	return response[2];
 }
 
-int PilotService::close_day(auth_answer* auth_answer)
+int PilotService::close_day(auth_answer& auth_answer, std::string& check)
 {
+	std::cout << "0) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
+	std::cout << "0) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;	
 	this->TestPinpad();
+	std::cout << "1) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
+	std::cout << "1) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 	Logger("\nclose_day");
 	//std::cout << "\nclose_day" << std::endl;
-
+	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
+	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 	std::vector<unsigned char> lastResponsePax;
-
-	StartWork(*auth_answer, lastResponsePax, str);	
-
-	std::cout << "SizeOf ammessage: " << sizeof(auth_answer->AMessage) << std::endl;
+	std::cout << "1) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
+	std::cout << "1) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
+	StartWork(auth_answer, lastResponsePax, str);	
+	std::cout << "3) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
+	std::cout << "3) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
-	auth_answer->Check = rStr.data();
+	check = rStr;
+	auth_answer.Check = check.data();
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
 
+	std::cout << "4) PilotServce::close_day SizeOf argument: " << sizeof(auth_answer) << std::endl;
+	std::cout << "4) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answer.AMessage) << std::endl;
+
 	for (int i = 0; i < 3; i++)
-		auth_answer->RCode[i] = std::to_string(RCode)[i];
+		auth_answer.RCode[i] = std::to_string(RCode)[i];
 
 	std::string result;
 
@@ -50,7 +60,7 @@ int PilotService::close_day(auth_answer* auth_answer)
 		result = "Отклонено";
 
 	for (int i = 0; i < 16; i++)
-		auth_answer->AMessage[i] = result[i];
+		auth_answer.AMessage[i] = result[i];
 
 	Logger("End Command");
 	return RCode;

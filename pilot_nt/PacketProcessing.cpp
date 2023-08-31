@@ -763,6 +763,8 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
+	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe) << std::endl;
+	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
@@ -787,6 +789,8 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 
 int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
 {
+	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe) << std::endl;
+	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 
@@ -806,6 +810,8 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 
 int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
+	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe.ans) << std::endl;
+	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.ans.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
@@ -830,6 +836,8 @@ int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastRespons
 
 int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
 {
+	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe.ans) << std::endl;
+	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.ans.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 
