@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 #include "PacketProcessing.h"
-
+#include <cassert>
 
 void open_port(HANDLE* hSerial)
 {
@@ -120,6 +120,23 @@ void getSettingsForPinpad(std::unordered_map<std::string, std::string>& settings
     std::string comPort;
     std::string speed;
     size_t index = 0;
+    wchar_t wPathToDll[MAX_PATH];
+
+    GetModuleFileName(GetThisDllHandle(), wPathToDll, MAX_PATH);
+
+    std::wstring wStringPathToDll = wPathToDll;
+    std::string pathToDll(wStringPathToDll.begin(), wStringPathToDll.end());
+    std::string del = "pilot_nt.dll";
+    std::string::size_type pos = pathToDll.find("pilot_nt.dll");
+    pathToDll.erase(pos, del.size());
+    pathToDll += "pinpad.ini";
+
+    std::cout << "ѕуть к dll" << std::endl;
+    std::cout << pathToDll << std::endl;
+
+    std::string rusPathToDll = pathToDll;
+    OemToCharBuffA(pathToDll.c_str(), &rusPathToDll[0], pathToDll.size());
+
     //std::string IniFile;
     //DWORD iSize;
     //char buff[1024];
@@ -134,7 +151,7 @@ void getSettingsForPinpad(std::unordered_map<std::string, std::string>& settings
     //std::cout << IniFile << std::endl;
 
 
-    std::ifstream in("pinpad.ini");
+    std::ifstream in(rusPathToDll);
 
     if (in.is_open())
     {
@@ -166,4 +183,12 @@ void getSettingsForPinpad(std::unordered_map<std::string, std::string>& settings
     Logger(settings["Speed"]);
     //std::cout << speed << std::endl;
     //std::cout << settings["Speed"] << std::endl;
+}
+
+HMODULE GetThisDllHandle()
+{
+    MEMORY_BASIC_INFORMATION info;
+    size_t len = VirtualQueryEx(GetCurrentProcess(), (void*)GetThisDllHandle, &info, sizeof(info));
+    assert(len == sizeof(info));
+    return len ? (HMODULE)info.AllocationBase : NULL;
 }

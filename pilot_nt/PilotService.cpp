@@ -22,24 +22,24 @@ int PilotService::TestPinpad()
 	return response[2];
 }
 
-int PilotService::close_day(auth_answer& auth_answer, std::string& check)
+int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 {
 	check = "";
 	this->TestPinpad();
 	Logger("\nclose_day");
 	std::vector<unsigned char> lastResponsePax;
-	StartWork(auth_answer, lastResponsePax, str);	
+	StartWork(*auth_answer, lastResponsePax, str);	
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
 	check = rStr;
-	auth_answer.Check = check.data();
+	auth_answer->Check = check.data();
 
 	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
 	int RCode = *((unsigned short*)errCode);
 
 	for (int i = 0; i < 3; i++)
-		auth_answer.RCode[i] = std::to_string(RCode)[i];
+		auth_answer->RCode[i] = std::to_string(RCode)[i];
 
 	std::string result;
 
@@ -49,7 +49,7 @@ int PilotService::close_day(auth_answer& auth_answer, std::string& check)
 		result = "Отклонено";
 
 	for (int i = 0; i < 16; i++)
-		auth_answer.AMessage[i] = result[i];
+		auth_answer->AMessage[i] = result[i];
 
 	Logger("End Command");
 	return RCode;
@@ -274,6 +274,7 @@ int PilotService::ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal)
 int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz)
 {
 	Logger("\nctxGetString");
+	Logger(std::to_string(name));
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
 	std::unordered_map<std::string, std::vector<unsigned char>> uMap;
 

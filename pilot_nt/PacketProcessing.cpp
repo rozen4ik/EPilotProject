@@ -6,6 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 
 unsigned short ComputeChecksum(std::vector<unsigned char>& bytes)
@@ -972,9 +973,22 @@ inline std::string getCurrentDateTime(std::string s)
 
 inline void Logger(std::string logMsg)
 {
-	std::string filePath = "log_" + getCurrentDateTime("date") + ".txt";
+	wchar_t wPathToDll[MAX_PATH];
+
+	GetModuleFileName(GetThisDllHandle(), wPathToDll, MAX_PATH);
+
+	std::wstring wStringPathToDll = wPathToDll;
+	std::string pathToDll(wStringPathToDll.begin(), wStringPathToDll.end());
+	std::string del = "pilot_nt.dll";
+	std::string::size_type pos = pathToDll.find("pilot_nt.dll");
+	pathToDll.erase(pos, del.size());
+	std::string rusPathToDll = pathToDll;
+	OemToCharBuffA(pathToDll.c_str(), &rusPathToDll[0], pathToDll.size());
+
+
+	rusPathToDll += "log_" + getCurrentDateTime("date") + ".txt";
 	std::string now = getCurrentDateTime("now");
-	std::ofstream ofs(filePath.c_str(), std::ios_base::out | std::ios_base::app);
+	std::ofstream ofs(rusPathToDll.c_str(), std::ios_base::out | std::ios_base::app);
 	ofs << now << '\t' << logMsg << '\n';
 	ofs.close();
 }
