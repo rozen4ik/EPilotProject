@@ -3,6 +3,7 @@
 #include "paramsln.h"
 #include <windows.h>
 #include <string>
+#include <unordered_map>
 
 #ifdef PILOT_NT_EXPORTS
 #define PILOT_NT_API __declspec(dllexport)
@@ -166,6 +167,7 @@ typedef struct
 } auth_answer14;
 
 extern "C" static std::string check;
+extern "C" static std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> map_context;
 
 /// <summary>
 /// Проверка готовности пинпада 

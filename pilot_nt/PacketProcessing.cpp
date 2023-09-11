@@ -2,12 +2,8 @@
 
 #include "pch.h"
 #include "PacketProcessing.h"
-#include "com_port.h"
-#include <iostream>
-#include <chrono>
-#include <thread>
-#include <cassert>
 
+ComPort com_port;
 
 unsigned short ComputeChecksum(std::vector<unsigned char>& bytes)
 {	
@@ -60,23 +56,6 @@ std::vector<unsigned char> GetBinaryOutData(std::string& outData)
 	std::erase(outData, '#');
 
 	return base64_decode(outData);
-}
-
-void ioPort(std::string& inData, std::string& outData)
-{
-	HANDLE hSerialPort;	
-	open_port(&hSerialPort);
-	std::cout << "Отправлено в порт" << std::endl;
-	Logger("-> " + inData);
-	std::cout << inData << std::endl;
-	write_port(&hSerialPort, &inData[0], inData.length());
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	read_port(&hSerialPort, outData);
-	std::cout << "Получено из порта" << std::endl;
-	std::cout << outData << std::endl;
-	Logger("<- " + outData);
-	std::cout << std::endl;
-	close_port(&hSerialPort);
 }
 
 std::string GetIp(std::vector<unsigned char>& response)
@@ -177,7 +156,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -195,7 +174,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -226,7 +205,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -244,13 +223,10 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				HANDLE hSerialPort;
-				open_port(&hSerialPort);
+				com_port.open_port();
 				Logger("-> " + resFramePax);
-				//std::cout << "Запись данных ComPort" << std::endl;
-				//std::cout << resFramePax << std::endl;
-				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
-				close_port(&hSerialPort);
+				com_port.write_port(&resFramePax[0], resFramePax.length());
+				com_port.close_port();
 
 				frame.clear();
 				serialNumber.clear();
@@ -264,7 +240,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -293,7 +269,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 						resFramePax = "\u0006";
 
-						ioPort(resFramePax, outDataPax);
+						com_port.io_port(resFramePax, outDataPax);
 						response = GetBinaryOutData(outDataPax);
 
 						frame.clear();
@@ -304,7 +280,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 						resFramePax = "\u0007";
 
-						ioPort(resFramePax, outDataPax);
+						com_port.io_port(resFramePax, outDataPax);
 						response = GetBinaryOutData(outDataPax);
 
 						frame.clear();
@@ -327,7 +303,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -347,7 +323,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);				
 
 				frame.clear();
@@ -369,7 +345,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -387,7 +363,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -404,7 +380,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 			resFramePax = "\u0006";
 
-			ioPort(resFramePax, outDataPax);
+			com_port.io_port(resFramePax, outDataPax);
 			response = GetBinaryOutData(outDataPax);
 
 			while (true)
@@ -415,7 +391,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 					resFramePax = "\u0006";
 
-					ioPort(resFramePax, outDataPax);
+					com_port.io_port(resFramePax, outDataPax);
 					response = GetBinaryOutData(outDataPax);
 
 					frame.clear();
@@ -426,7 +402,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 					resFramePax = "\u0007";
 
-					ioPort(resFramePax, outDataPax);
+					com_port.io_port(resFramePax, outDataPax);
 					response = GetBinaryOutData(outDataPax);
 
 					frame.clear();
@@ -488,7 +464,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -506,7 +482,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -537,7 +513,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -555,13 +531,11 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				HANDLE hSerialPort;
-				open_port(&hSerialPort);
+
+				com_port.open_port();
 				Logger("-> " + resFramePax);
-				//std::cout << "Запись данных ComPort" << std::endl;
-				//std::cout << resFramePax << std::endl;
-				write_port(&hSerialPort, &resFramePax[0], resFramePax.length());
-				close_port(&hSerialPort);
+				com_port.write_port(&resFramePax[0], resFramePax.length());
+				com_port.close_port();
 
 				frame.clear();
 				serialNumber.clear();
@@ -575,7 +549,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -604,7 +578,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 						resFramePax = "\u0006";
 
-						ioPort(resFramePax, outDataPax);
+						com_port.io_port(resFramePax, outDataPax);
 						response = GetBinaryOutData(outDataPax);
 
 						frame.clear();
@@ -615,7 +589,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 						resFramePax = "\u0007";
 
-						ioPort(resFramePax, outDataPax);
+						com_port.io_port(resFramePax, outDataPax);
 						response = GetBinaryOutData(outDataPax);
 
 						frame.clear();
@@ -638,7 +612,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -658,7 +632,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 				
 				frame.clear();
@@ -680,7 +654,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -698,7 +672,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-				ioPort(resFramePax, outDataPax);
+				com_port.io_port(resFramePax, outDataPax);
 				response = GetBinaryOutData(outDataPax);
 
 				frame.clear();
@@ -715,7 +689,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 			resFramePax = "\u0006";
 
-			ioPort(resFramePax, outDataPax);
+			com_port.io_port(resFramePax, outDataPax);
 			response = GetBinaryOutData(outDataPax);
 
 			while (true)
@@ -726,7 +700,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 					resFramePax = "\u0006";
 
-					ioPort(resFramePax, outDataPax);
+					com_port.io_port(resFramePax, outDataPax);
 					response = GetBinaryOutData(outDataPax);
 
 					frame.clear();
@@ -737,7 +711,7 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 
 					resFramePax = "\u0007";
 
-					ioPort(resFramePax, outDataPax);
+					com_port.io_port(resFramePax, outDataPax);
 					response = GetBinaryOutData(outDataPax);
 
 					frame.clear();
@@ -775,7 +749,7 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 
 	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-	ioPort(resFrame, outData);
+	com_port.io_port(resFrame, outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
@@ -799,7 +773,7 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 
 	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-	ioPort(resFrame, outData);
+	com_port.io_port(resFrame, outData);
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
 	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str);
@@ -822,7 +796,7 @@ int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastRespons
 
 	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-	ioPort(resFrame, outData);
+	com_port.io_port(resFrame, outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
@@ -846,7 +820,7 @@ int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastRespons
 
 	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 
-	ioPort(resFrame, outData);
+	com_port.io_port(resFrame, outData);
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
 	BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str);
@@ -993,3 +967,10 @@ inline void Logger(std::string logMsg)
 	ofs.close();
 }
 
+HMODULE GetThisDllHandle()
+{
+	MEMORY_BASIC_INFORMATION info;
+	size_t len = VirtualQueryEx(GetCurrentProcess(), (void*)GetThisDllHandle, &info, sizeof(info));
+	assert(len == sizeof(info));
+	return len ? (HMODULE)info.AllocationBase : NULL;
+}

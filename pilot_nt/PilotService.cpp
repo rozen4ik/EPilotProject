@@ -4,7 +4,7 @@
 int PilotService::TestPinpad()
 {
 	Logger("\nTestPinpad");
-	//std::cout << "\nTestPinpad" << std::endl;
+	ComPort com_port;
 
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameGetReady(0x0000);
@@ -13,7 +13,7 @@ int PilotService::TestPinpad()
 
 	std::string resFrame = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
 	Logger("До чтение ini");
-	ioPort(resFrame, outData);
+	com_port.io_port(resFrame, outData);
 	Logger("После чтение ini");
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
@@ -174,7 +174,7 @@ int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answe
 	return RCode;
 }
 
-CONTEXT_PTR PilotService::ctxAlloc()
+CONTEXT_PTR PilotService::ctxAlloc(std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxAlloc");
 	CONTEXT_PTR ctx = 0;
@@ -189,6 +189,7 @@ CONTEXT_PTR PilotService::ctxAlloc()
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
 	dContext[addr] = argument;
 	DTagExtraData[addr] = listTagExtraData;
+	map_context = DTagExtraData;
 	Logger("End command");
 	return addr;
 }
@@ -203,15 +204,16 @@ void PilotService::ctxClear(CONTEXT_PTR ctx)
 	Logger("End command");
 }
 
-void PilotService::ctxFree(CONTEXT_PTR ctx)
+void PilotService::ctxFree(CONTEXT_PTR ctx, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxFree");
 	dContext.erase(ctx);
 	DTagExtraData.erase(ctx);
+	map_context.erase(ctx);
 	Logger("End command");
 }
 
-int PilotService::ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* pVal, int* pOutSz, int MAXSIZE)
+int PilotService::ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* pVal, int* pOutSz, int MAXSIZE, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxGetBinary");
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
@@ -221,6 +223,7 @@ int PilotService::ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned ch
 	{
 	case PAR_ENCRYPTED_DATA:
 	{
+		DTagExtraData = map_context;
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
 		std::vector<unsigned char> ucVector = uMap["EncryptedData"];
@@ -236,7 +239,7 @@ int PilotService::ctxGetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned ch
 	return 0;
 }
 
-int PilotService::ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal)
+int PilotService::ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxGetInt");
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
@@ -255,6 +258,7 @@ int PilotService::ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal)
 		break;
 	case PAR_EXPIRY_DATE:
 	{
+		DTagExtraData = map_context;
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
 		std::string s(uMap["ExpiryDate"].begin(), uMap["ExpiryDate"].end());
@@ -271,7 +275,7 @@ int PilotService::ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal)
 	return 0;
 }
 
-int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz)
+int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxGetString");
 	Logger(std::to_string(name));
@@ -282,22 +286,27 @@ int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, 
 	{
 	case PAR_PAN:
 	{
+		DTagExtraData = map_context;
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
 		std::string s(uMap["pan"].begin(), uMap["pan"].end());
 		str = s.data();
+		Logger(s);
 	}
 		break;
 	case PAR_HASH:
 	{
+		DTagExtraData = map_context;
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
 		std::string s(uMap["hash"].begin(), uMap["hash"].end());
 		str = s.data();
+		Logger(s);
 	}
 		break;
 	case PAR_EXPIRY_DATE:
 	{
+		DTagExtraData = map_context;
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
 		std::string s(uMap["ExpiryDate"].begin(), uMap["ExpiryDate"].end());
@@ -312,7 +321,7 @@ int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, 
 	return 0;
 }
 
-int PilotService::ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz)
+int PilotService::ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxSetBinary");
 	std::vector<unsigned char> ucVector;
@@ -329,6 +338,7 @@ int PilotService::ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned ch
 		std::unordered_map<std::string, std::vector<unsigned char>> uMap = {{ "EncryptedData", ucVector }};
 		listTagExtraData.push_back(uMap);
 		DTagExtraData[ctx] = listTagExtraData;
+		map_context = DTagExtraData;
 	}
 		break;
 	default:
@@ -338,7 +348,7 @@ int PilotService::ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned ch
 	return 0;
 }
 
-int PilotService::ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val)
+int PilotService::ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxSetInt");
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
@@ -368,6 +378,7 @@ int PilotService::ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val)
 		std::unordered_map<std::string, std::vector<unsigned char>> uMap = { { "AmountOther", amountOther } };
 		listTagExtraData.push_back(uMap);
 		DTagExtraData[ctx] = listTagExtraData;
+		map_context = DTagExtraData;
 	}
 		break;
 	default:
@@ -379,7 +390,7 @@ int PilotService::ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val)
 	return 0;
 }
 
-int PilotService::ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str)
+int PilotService::ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxSetString");
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
@@ -394,6 +405,7 @@ int PilotService::ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char*
 		std::unordered_map<std::string, std::vector<unsigned char>> uMap = { {"BasketId", baskedId} };
 		listTagExtraData.push_back(uMap);
 		DTagExtraData[ctx] = listTagExtraData;
+		map_context = DTagExtraData;
 	}
 		break;
 	default:
@@ -403,7 +415,7 @@ int PilotService::ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char*
 	return 0;
 }
 
-int PilotService::ReadCardContext(CONTEXT_PTR dataOut)
+int PilotService::ReadCardContext(CONTEXT_PTR dataOut, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	this->TestPinpad();
 	Logger("\nReadCardContext");
@@ -442,6 +454,7 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut)
 	};
 	list.push_back(uMap);
 	DTagExtraData[dataOut] = list;
+	map_context = DTagExtraData;
 	Logger("End command");
 	return RCode;
 }
@@ -533,18 +546,17 @@ int PilotService::SuspendTrx(DWORD dwAmount, char* pAuthCode)
 int PilotService::AbortTransaction()
 {
 	Logger("\nAbortTransaction");
-	//std::cout << "\nAbortTransaction" << std::endl;
+	ComPort com_port;
 	std::vector<unsigned char> frame = GetFrameGetReady(0x0000);
 
 	GetFrameWithCrc16(frame);
 
 	std::string resFrame = "\u0002!" + base64_encode(&frame[0], frame.size()) + "\u0003";
 	
-	HANDLE hSerial;
-	open_port(&hSerial);
+	com_port.open_port();
 	Logger("-> " + resFrame);
-	write_port(&hSerial, &resFrame[0], resFrame.length());
-	close_port(&hSerial);
+	com_port.write_port(&resFrame[0], resFrame.length());
+	com_port.close_port();
 
 	for (const auto& c : runCardAuth)
 	{
