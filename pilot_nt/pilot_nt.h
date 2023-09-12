@@ -167,6 +167,8 @@ typedef struct
 } auth_answer14;
 
 extern "C" static std::string check;
+extern "C" static std::string hash;
+extern "C" static std::string par_pan;
 extern "C" static std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> map_context;
 
 /// <summary>

@@ -275,7 +275,13 @@ int PilotService::ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal, std
 	return 0;
 }
 
-int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
+int PilotService::ctxGetString(CONTEXT_PTR ctx, 
+	EParameterName name, 
+	char* str, 
+	int sz, 
+	std::string& _hash, 
+	std::string& _par_pan,
+	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxGetString");
 	Logger(std::to_string(name));
@@ -290,18 +296,31 @@ int PilotService::ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, 
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
 		std::string s(uMap["pan"].begin(), uMap["pan"].end());
-		str = s.data();
-		Logger(s);
+		_par_pan = s;
+		for (int i = 0; i < _par_pan.size(); i++)
+			str[i] = _par_pan[i];
+		Logger(_par_pan);
 	}
 		break;
 	case PAR_HASH:
 	{
+		std::string hash{"H"};
+		std::stringstream symbol;
+		symbol.setf(std::ios::hex, std::ios::basefield);
+		symbol.unsetf(std::ios::showbase);
+
 		DTagExtraData = map_context;
 		listTagExtraData = DTagExtraData[ctx];
 		uMap = listTagExtraData[0];
-		std::string s(uMap["hash"].begin(), uMap["hash"].end());
-		str = s.data();
-		Logger(s);
+
+		for (auto& a : uMap["hash"])
+			symbol << std::hex << std::uppercase << int(a);
+
+		hash = symbol.str();
+		_hash = "H" + hash;
+		for (int i = 0; i < _hash.size(); i++)
+			str[i] = _hash[i];
+		Logger(_hash);
 	}
 		break;
 	case PAR_EXPIRY_DATE:

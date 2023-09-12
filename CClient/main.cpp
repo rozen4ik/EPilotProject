@@ -64,9 +64,17 @@ int main()
 				//	::GlobalFree(argument3.ans.Check);
 				break;
 			case 4:
-				//CONTEXT_PTR ctx = _ctxAlloc();
-				error = _ReadCardContext(0);
+			{
+				CONTEXT_PTR ctx = _ctxAlloc();
+				error = _ReadCardContext(ctx);
+				char buff[1024];
+				_ctxGetString(ctx, PAR_HASH, buff, 1024);
+				for (int i = 0; i < 400; i++)
+					std::cout << buff[i];
+				std::cout << std::endl;
+				_ctxFree(ctx);
 				break;
+			}
 			case 5:
 				error = _RollbackTrx(10000, NULL);
 				break;

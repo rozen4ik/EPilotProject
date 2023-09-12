@@ -56,7 +56,7 @@ int __cdecl _ctxGetInt(CONTEXT_PTR ctx, EParameterName name, int* pVal)
 
 int __cdecl _ctxGetString(CONTEXT_PTR ctx, EParameterName name, char* str, int sz)
 {
-	return pService.ctxGetString(ctx, name, str, sz, map_context);
+	return pService.ctxGetString(ctx, name, str, sz, hash, par_pan, map_context);
 }
 
 int __cdecl _ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz)
