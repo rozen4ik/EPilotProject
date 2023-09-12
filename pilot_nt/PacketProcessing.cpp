@@ -149,7 +149,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 		case 1:
 			if (codeDevice == 25)
 			{
-				//openTCP(WSAData, server, addr, ip, port);
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 25);
 				GetFrameWithCrc16(frame);
@@ -295,7 +294,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 				}
 
 				Logger("Запись данных TCP");
-				//std::cout << "Запись данных TCP" << std::endl;
 				writeTCP(server, inDataTCP, inDataTCP.size());
 
 				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
@@ -337,8 +335,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 		case 4:
 			if (codeDevice == 25)
 			{
-				//closeTCP(server);
-
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameCloseTCPMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -412,6 +408,12 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 				else
 				{
 					GetLastResponsePax(response, lastResponsePax, 2);
+					char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+					int RCode = *((unsigned short*)errCode);
+
+					if (RCode != 0)
+						return RCode;
+
 					break;
 				}
 			}
@@ -457,7 +459,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 		case 1:
 			if (codeDevice == 25)
 			{
-				//openTCP(WSAData, server, addr, ip, port);
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 25);
 				GetFrameWithCrc16(frame);
@@ -498,7 +499,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 			{
 				outDataTCP.clear();
 				Logger("Чтение данных TCP");
-				//std::cout << "Чтение данных TCP" << std::endl;
 				readTCP(server, outDataTCP, GetSizeBuff(response), addr, ip, port);
 
 				for (char c : outDataTCP)
@@ -604,7 +604,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 				}
 
 				Logger("Запись данных TCP");
-				//std::cout << "Запись данных TCP" << std::endl;
 				writeTCP(server, inDataTCP, inDataTCP.size());
 
 				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
@@ -646,8 +645,6 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 		case 4:
 			if (codeDevice == 25)
 			{
-				//closeTCP(server);
-
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameCloseTCPMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -721,6 +718,12 @@ int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& respo
 				else
 				{
 					GetLastResponsePax(response, lastResponsePax, 2);
+					char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+					int RCode = *((unsigned short*)errCode);
+
+					if (RCode != 0)
+						return RCode;
+
 					break;
 				}
 			}
@@ -754,12 +757,12 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str, runCardAuth);
+	int result = BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str, runCardAuth);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	outData = "";
 	response.clear();
-	return 0;
+	return result;
 }
 
 int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
@@ -776,11 +779,10 @@ int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponseP
 	com_port.io_port(resFrame, outData);
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str);
-
+	int result = BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str);
 	outData = "";
 	response.clear();
-	return 0;
+	return result;
 }
 
 int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
@@ -801,12 +803,12 @@ int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastRespons
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str, runCardAuth);
+	int result = BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str, runCardAuth);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	outData = "";
 	response.clear();
-	return 0;
+	return result;
 }
 
 int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
@@ -823,11 +825,10 @@ int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastRespons
 	com_port.io_port(resFrame, outData);
 
 	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str);
-
+	int result = BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str);
 	outData = "";
 	response.clear();
-	return 0;
+	return result;
 }
 
 void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex)

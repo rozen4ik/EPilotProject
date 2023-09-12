@@ -24,10 +24,10 @@ int PilotService::TestPinpad()
 
 int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 {
+	lastResponsePax.clear();
 	check = "";
-	this->TestPinpad();
+	TestPinpad();
 	Logger("\nclose_day");
-	std::vector<unsigned char> lastResponsePax;
 	StartWork(*auth_answer, lastResponsePax, str);	
 
 	rStr = str;
@@ -57,13 +57,13 @@ int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 
 int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 {
+	lastResponsePax.clear();
 	runCardAuth["cardAuth"] = 1;
 	if (runCardAuth["cardAuth"] == 0) return 2000;
-	this->TestPinpad();
+	TestPinpad();
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 	Logger("\ncard_authorize");
-	std::string track;
-	std::vector<unsigned char> lastResponsePax;
+	std::string track;	
 
 	if (track2 != nullptr)
 		track = track2;
@@ -74,9 +74,6 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
 	auth_answer->Check = &rStr[0];
-
-	for (int i = 0; i < 400; i++)
-		std::cout << auth_answer->Check[i];
 
 	std::cout << std::endl;
 
@@ -91,14 +88,14 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 
 int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answer, payment_info_item& payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut, std::string& check)
 {
+	lastResponsePax.clear();
 	check = "";
 	runCardAuth["cardAuth15"] = 1;
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	this->TestPinpad();
+	TestPinpad();
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	Logger("\ncard_authorize15");
 	std::string track;
-	std::vector<unsigned char> lastResponsePax;
 
 	if (track2 != nullptr)
 		track = track2;
@@ -145,8 +142,8 @@ int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answe
 	for (int i = 0; i < 32; i++)
 		auth_answer.CardName[i] = resRecCard[NAME_CARD][i];
 
-	for (int i = 0; i < 2; i++)
-		auth_answer.ans.RCode[i] = resRecCard[ERROR_CODE][i];
+	for (int i = 0; i < 3; i++)
+		auth_answer.ans.RCode[i] = std::to_string(RCode)[i];;
 
 	std::string result;
 
@@ -158,17 +155,6 @@ int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answe
 	for (int i = 0; i < 16; i++)
 		auth_answer.ans.AMessage[i] = result[i];
 
-	//std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> list = DTagExtraData[dataOut];
-	//std::unordered_map<std::string, std::vector<unsigned char>> uMap =
-	//{
-	//	{ "pan", resRecCard[NUMBER_CARD] },
-	//	{ "ExpiryDate", resRecCard[CARD_DATE] },
-	//	{ "hash", resRecCard[HASH_CARD] },
-	//	{ "ownCard", resRecCard[BANK_AFFILIATION] },
-	//	{ "EncryptedData", resRecCard[ECRYPTED_DATA] }
-	//};
-	//list.push_back(uMap);
-	//DTagExtraData[dataOut] = list;
 	Logger("End command");
 
 	return RCode;
@@ -340,7 +326,11 @@ int PilotService::ctxGetString(CONTEXT_PTR ctx,
 	return 0;
 }
 
-int PilotService::ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned char* val, int sz, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
+int PilotService::ctxSetBinary(CONTEXT_PTR ctx, 
+	EParameterName name, 
+	unsigned char* val, 
+	int sz, 
+	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxSetBinary");
 	std::vector<unsigned char> ucVector;
@@ -367,7 +357,10 @@ int PilotService::ctxSetBinary(CONTEXT_PTR ctx, EParameterName name, unsigned ch
 	return 0;
 }
 
-int PilotService::ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
+int PilotService::ctxSetInt(CONTEXT_PTR ctx, 
+	EParameterName name, 
+	int val, 
+	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxSetInt");
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
@@ -409,7 +402,10 @@ int PilotService::ctxSetInt(CONTEXT_PTR ctx, EParameterName name, int val, std::
 	return 0;
 }
 
-int PilotService::ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char* str, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
+int PilotService::ctxSetString(CONTEXT_PTR ctx, 
+	EParameterName name, 
+	const char* str, 
+	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	Logger("\nctxSetString");
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> listTagExtraData;
@@ -434,7 +430,9 @@ int PilotService::ctxSetString(CONTEXT_PTR ctx, EParameterName name, const char*
 	return 0;
 }
 
-int PilotService::ReadCardContext(CONTEXT_PTR dataOut, std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
+int PilotService::ReadCardContext(CONTEXT_PTR dataOut, 
+	std::unordered_map<CONTEXT_PTR, 
+	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>>& map_context)
 {
 	this->TestPinpad();
 	Logger("\nReadCardContext");
@@ -480,11 +478,10 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut, std::unordered_map<CONTEX
 
 int PilotService::CommitTrx(DWORD dwAmount, char* pAuthCode)
 {
-	this->TestPinpad();
+	lastResponsePax.clear();
+	TestPinpad();
 	Logger("\nCommitTrx");
-	//std::cout << "\nCommitTrx" << std::endl;
 
-	std::vector<unsigned char> lastResponsePax;
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
 
@@ -508,11 +505,9 @@ int PilotService::CommitTrx(DWORD dwAmount, char* pAuthCode)
 
 int PilotService::RollbackTrx(DWORD dwAmount, char* pAuthCode)
 {
-	this->TestPinpad();
+	TestPinpad();
 	Logger("\nRollbackTrx");
-	//std::cout << "\nRollbackTrx" << std::endl;
-
-	std::vector<unsigned char> lastResponsePax;
+	
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
 
@@ -538,9 +533,7 @@ int PilotService::SuspendTrx(DWORD dwAmount, char* pAuthCode)
 {
 	this->TestPinpad();
 	Logger("\nSuspendTrx");
-	//std::cout << "\nSuspendTrx" << std::endl;
-
-	std::vector<unsigned char> lastResponsePax;
+		
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
 

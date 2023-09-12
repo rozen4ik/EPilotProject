@@ -11,14 +11,6 @@
 class PilotService
 {
 public:
-	std::unordered_map<CONTEXT_PTR, auth_answer14> dContext;
-	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> DTagExtraData;
-	std::unordered_map<ResponseRCardContext, std::vector<unsigned char>> resRecCard;
-	std::unordered_map<std::string, int>runCardAuth;
-	std::string str;
-	std::string rStr;
-
-
 	int TestPinpad(); ///< Проверка готовности пинпада
 	int close_day(auth_answer* auth_answer, std::string& check); ///< Закрытие дня. 
 	int card_authorize(const char* track2, auth_answer* auth_answer); ///< Выполнение операций по картам
@@ -40,6 +32,12 @@ public:
 	void Done(); ///< Деинициализация библиотеки pilot_nt.dll. 
 
 private:
-
+	std::vector<unsigned char> lastResponsePax;
+	std::unordered_map<CONTEXT_PTR, auth_answer14> dContext;
+	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> DTagExtraData;
+	std::unordered_map<ResponseRCardContext, std::vector<unsigned char>> resRecCard;
+	std::unordered_map<std::string, int>runCardAuth;
+	std::string str;
+	std::string rStr;
 };
 

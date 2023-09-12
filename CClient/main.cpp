@@ -38,6 +38,8 @@ int main()
 
 				std::cout << std::endl;
 
+				std::cout << argument1.RCode << std::endl;
+
 				//if (argument1.Check)
 				//	::GlobalFree(argument1.Check);
 				break;
@@ -48,6 +50,7 @@ int main()
 				argument2.ans.TType = OP_PURCHASE;
 
 				error = _card_authorize15(NULL, &argument2, NULL, 0, 0);
+				std::cout << argument2.ans.RCode << std::endl;
 
 				//if (argument2.ans.Check)
 				//	::GlobalFree(argument2.ans.Check);
@@ -59,6 +62,7 @@ int main()
 				argument3.ans.TType = OP_RETURN;
 
 				error = _card_authorize15(NULL, &argument3, NULL, 0, 0);
+				std::cout << argument3.ans.RCode << std::endl;
 
 				//if (argument3.ans.Check)
 				//	::GlobalFree(argument3.ans.Check);

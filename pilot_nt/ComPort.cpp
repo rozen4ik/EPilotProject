@@ -64,9 +64,9 @@ void ComPort::open_port()
     int speed = std::stoi(settings["Speed"]);
     LPCTSTR sPortName = nPort.c_str();
 
-    this->hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
-    if (this->hSerial == INVALID_HANDLE_VALUE)
+    if (hSerial == INVALID_HANDLE_VALUE)
     {
         if (GetLastError() == ERROR_FILE_NOT_FOUND)
         {
@@ -78,8 +78,8 @@ void ComPort::open_port()
         //std::cout << "some other error occurred.\n";
     }
 
-    SetCommMask(this->hSerial, EV_RXCHAR);
-    SetupComm(this->hSerial, 3000, 3000);
+    SetCommMask(hSerial, EV_RXCHAR);
+    SetupComm(hSerial, 3000, 3000);
 
     COMMTIMEOUTS CommTimeOuts;
     CommTimeOuts.ReadIntervalTimeout = 0xFFFFFFFF;
@@ -91,7 +91,7 @@ void ComPort::open_port()
     DCB dcb = { 0 };
     dcb.DCBlength = sizeof(dcb);
 
-    if (!GetCommState(this->hSerial, &dcb))
+    if (!GetCommState(hSerial, &dcb))
     {
         Logger("getting state error");
         //std::cout << "getting state error\n";
@@ -116,7 +116,7 @@ void ComPort::open_port()
     dcb.EvtChar = 0;
     dcb.EofChar = 0;
 
-    if (!SetCommState(this->hSerial, &dcb))
+    if (!SetCommState(hSerial, &dcb))
     {
         Logger("error setting serial port state");
         //std::cout << "error setting serial port state\n";
@@ -130,7 +130,7 @@ void ComPort::read_port(std::string& data)
 
     while (true)
     {
-        BOOL iRet = ReadFile(this->hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
+        BOOL iRet = ReadFile(hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
         if (iSize > 0)   // если что-то принято, выводим
         {
             if (sReceivedChar == '\u0003')
@@ -153,14 +153,16 @@ void ComPort::write_port(char* data, const int size)
     while (*data != '\0')
     {
         //std::cout << *data;
-        BOOL iRet = WriteFile(this->hSerial, data, dwSize, &dwBytesWritten, NULL);
+        BOOL iRet = WriteFile(hSerial, data, dwSize, &dwBytesWritten, NULL);
         data++;
     }
+    
+    std::cout << dwSize << " - " << dwBytesWritten << std::endl;
 }
 
 void ComPort::close_port()
 {
-    CloseHandle(this->hSerial);
+    CloseHandle(hSerial);
 }
 
 void ComPort::io_port(std::string& inData, std::string& outData)
@@ -169,12 +171,18 @@ void ComPort::io_port(std::string& inData, std::string& outData)
     std::cout << "Отправлено в порт" << std::endl;
     Logger("-> " + inData);
     std::cout << inData << std::endl;
-    this->write_port(&inData[0], inData.length());
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    this->read_port(outData);
-    std::cout << "Получено из порта" << std::endl;
+    while (outData == "")
+    {
+        PurgeComm(hSerial, PURGE_TXABORT);
+        write_port(&inData[0], inData.length());
+        Logger("->");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        read_port(outData);
+        Logger("<-");
+        std::cout << "Получено из порта" << std::endl;
+    }
     std::cout << outData << std::endl;
     Logger("<- " + outData);
     std::cout << std::endl;
-    this->close_port();
+    close_port();
 }
