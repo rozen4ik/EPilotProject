@@ -145,7 +145,6 @@
   <ItemGroup>
     <ClInclude Include="base64.h" />
     <ClInclude Include="cmd_msb.h" />
-    <ClInclude Include="CommunicationWithSber.h" />
     <ClInclude Include="ComPort.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="PacketProcessing.h" />
@@ -154,11 +153,11 @@
     <ClInclude Include="pilot_nt.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TCPClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="cmd_msb.cpp" />
-    <ClCompile Include="CommunicationWithSber.cpp" />
     <ClCompile Include="ComPort.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="PacketProcessing.cpp" />
@@ -170,6 +169,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TCPClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pilot_nt.rc" />

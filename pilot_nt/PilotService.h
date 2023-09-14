@@ -39,5 +39,12 @@ private:
 	std::unordered_map<std::string, int>runCardAuth;
 	std::string str;
 	std::string rStr;
+
+	int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str);
+	int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str);
+	int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str);
 };
 
