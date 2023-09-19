@@ -17,10 +17,10 @@ private:
 	std::unordered_map<std::string, std::string> settings;
 public:
 	ComPort();
-	void open_port();
-	void read_port(std::string& data);
-	void write_port(char* data, const int size);
-	void close_port();
-	void io_port(std::string& inData, std::string& outData);
+	void OpenPort();
+	void ReadPort(std::string& data);
+	void WritePort(char* data, const int size);
+	void ClosePort();
+	void IOPort(const std::string& inData, std::string& outData);
 };
 

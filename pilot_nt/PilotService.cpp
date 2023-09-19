@@ -10,50 +10,15 @@ int PilotService::TestPinpad()
 	std::string outData = "";
 	sber_cmd.RunGetReady(0x0000);
 	sber_cmd.SetResFrame("\u0002#");
-	std::string res_frame = sber_cmd.GetResFrame();
-	com_port.io_port(res_frame, outData);
+	com_port.IOPort(sber_cmd.GetResFrame(), outData);
 	sber_cmd.SetBinaryOutData(outData);
 	Logger("End Command");
 
 	return sber_cmd.GetResponse()[2];
 }
 
-//int PilotService::close_day(auth_answer* auth_answer, std::string& check)
-//{
-//	lastResponsePax.clear();
-//	check = "";
-//	TestPinpad();
-//	Logger("\nclose_day");
-//	StartWork(*auth_answer, lastResponsePax, str);	
-//
-//	rStr = str;
-//	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
-//	check = rStr;
-//	auth_answer->Check = check.data();
-//
-//	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
-//	int RCode = *((unsigned short*)errCode);
-//
-//	for (int i = 0; i < 3; i++)
-//		auth_answer->RCode[i] = std::to_string(RCode)[i];
-//
-//	std::string result;
-//
-//	if (RCode == 0)
-//		result = "Одобрено";
-//	else
-//		result = "Отклонено";
-//
-//	for (int i = 0; i < 16; i++)
-//		auth_answer->AMessage[i] = result[i];
-//
-//	Logger("End Command");
-//	return RCode;
-//}
-
 int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 {
-	lastResponsePax.clear();
 	check = "";
 	TestPinpad();
 	Logger("\nclose_day");
@@ -87,19 +52,19 @@ int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 
 int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 {
-	lastResponsePax.clear();
 	runCardAuth["cardAuth"] = 1;
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 	TestPinpad();
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 	Logger("\ncard_authorize");
-	std::string track;	
+	SberCmd sber_cmd;
+	std::string track;
 
 	if (track2 != nullptr)
 		track = track2;
 
 	if (runCardAuth["cardAuth"] == 0) return 2000;
-	StartWork(*auth_answer, lastResponsePax, str, runCardAuth);
+	StartWork(*auth_answer, sber_cmd, str, runCardAuth);
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -109,7 +74,7 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
 	Logger("End command");
 
@@ -118,20 +83,20 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 
 int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answer, payment_info_item& payinfo, CONTEXT_PTR dataIn, CONTEXT_PTR dataOut, std::string& check)
 {
-	lastResponsePax.clear();
 	check = "";
 	runCardAuth["cardAuth15"] = 1;
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	TestPinpad();
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	Logger("\ncard_authorize15");
+	SberCmd sber_cmd;
 	std::string track;
 
 	if (track2 != nullptr)
 		track = track2;
 
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	StartWork(auth_answer.ans, lastResponsePax, str, runCardAuth);
+	StartWork(auth_answer.ans, sber_cmd, str, runCardAuth);
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -140,9 +105,9 @@ int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answe
 
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
-	ParsingResponseResCard(resRecCard, lastResponsePax);
+	ParsingResponseResCard(resRecCard, sber_cmd.GetLastResponse());
 
 	for (int i = 0; i < 7; i++)
 		auth_answer.AuthCode[i] = resRecCard[CODE_AUTH][i];
@@ -466,9 +431,7 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut,
 {
 	this->TestPinpad();
 	Logger("\nReadCardContext");
-	//std::cout << "\nReadCardContext" << std::endl;
-
-	std::vector<unsigned char> lastResponsePax;
+	SberCmd sber_cmd;
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
 
@@ -476,7 +439,7 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut,
 	argument.Amount = 0;
 	argument.CType = 0;
 
-	StartWork(argument, lastResponsePax, str);
+	StartWork(argument, sber_cmd, str);
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -485,10 +448,10 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut,
 	for (int i = 0; i < 400; i++)
 		std::cout << argument.Check[i];
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
 
-	ParsingResponseResCard(resRecCard, lastResponsePax);
+	ParsingResponseResCard(resRecCard, sber_cmd.GetLastResponse());
 
 	std::vector<std::unordered_map<std::string, std::vector<unsigned char>>> list = DTagExtraData[dataOut];
 	std::unordered_map<std::string, std::vector<unsigned char>> uMap =
@@ -508,9 +471,9 @@ int PilotService::ReadCardContext(CONTEXT_PTR dataOut,
 
 int PilotService::CommitTrx(DWORD dwAmount, char* pAuthCode)
 {
-	lastResponsePax.clear();
 	TestPinpad();
 	Logger("\nCommitTrx");
+	SberCmd sber_cmd;
 
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
@@ -518,7 +481,7 @@ int PilotService::CommitTrx(DWORD dwAmount, char* pAuthCode)
 	argument.TType = OP_COMMIT;
 	argument.Amount = dwAmount;
 
-	StartWork(argument, lastResponsePax, str);
+	StartWork(argument, sber_cmd, str);
 	
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -527,7 +490,7 @@ int PilotService::CommitTrx(DWORD dwAmount, char* pAuthCode)
 	for (int i = 0; i < 400; i++)
 		std::cout << argument.Check[i];
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
 	Logger("End command");
 	return RCode;
@@ -537,14 +500,15 @@ int PilotService::RollbackTrx(DWORD dwAmount, char* pAuthCode)
 {
 	TestPinpad();
 	Logger("\nRollbackTrx");
-	
+	SberCmd sber_cmd;
+
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
 
 	argument.TType = OP_ROLLBACK;
 	argument.Amount = dwAmount;
 
-	StartWork(argument, lastResponsePax, str);
+	StartWork(argument, sber_cmd, str);
 	
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -553,7 +517,7 @@ int PilotService::RollbackTrx(DWORD dwAmount, char* pAuthCode)
 	for (int i = 0; i < 400; i++)
 		std::cout << argument.Check[i];
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
 	Logger("End command");
 	return RCode;
@@ -563,6 +527,7 @@ int PilotService::SuspendTrx(DWORD dwAmount, char* pAuthCode)
 {
 	this->TestPinpad();
 	Logger("\nSuspendTrx");
+	SberCmd sber_cmd;
 		
 	auth_answer argument;
 	memset(&argument, 0, sizeof(argument));
@@ -570,7 +535,7 @@ int PilotService::SuspendTrx(DWORD dwAmount, char* pAuthCode)
 	argument.TType = OP_SUSPEND;
 	argument.Amount = dwAmount;
 
-	StartWork(argument, lastResponsePax, str);
+	StartWork(argument, sber_cmd, str);
 	
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
@@ -579,7 +544,7 @@ int PilotService::SuspendTrx(DWORD dwAmount, char* pAuthCode)
 	for (int i = 0; i < 400; i++)
 		std::cout << argument.Check[i];
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
 	Logger("End command");
 	return RCode;
@@ -589,16 +554,15 @@ int PilotService::AbortTransaction()
 {
 	Logger("\nAbortTransaction");
 	ComPort com_port;
-	std::vector<unsigned char> frame = GetFrameGetReady(0x0000);
+	SberCmd sber_cmd;
 
-	GetFrameWithCrc16(frame);
-
-	std::string resFrame = "\u0002!" + base64_encode(&frame[0], frame.size()) + "\u0003";
+	sber_cmd.RunGetReady(0x0000);
+	sber_cmd.SetResFrame("\u0002!");	
 	
-	com_port.open_port();
-	Logger("-> " + resFrame);
-	com_port.write_port(&resFrame[0], resFrame.length());
-	com_port.close_port();
+	com_port.OpenPort();
+	Logger("-> " + sber_cmd.GetResFrame());
+	com_port.WritePort(sber_cmd.GetResFrame().data(), sber_cmd.GetResFrame().length());
+	com_port.ClosePort();
 
 	for (const auto& c : runCardAuth)
 	{
@@ -615,741 +579,6 @@ void PilotService::Done()
 	Logger("End command");
 }
 
-int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
-{
-	int codeInstruction;
-	int codeDevice;
-	bool loop = true;
-	std::string ipString = GetIp(response);
-	std::wstring stemp = std::wstring(ipString.begin(), ipString.end());
-	LPCWSTR ip = stemp.c_str();
-	int port = GetPort(response);
-	std::vector<unsigned char> frame, serialNumber;
-	std::string outDataPax = "";
-	std::string resFramePax = "";
-	std::vector<char> outDataTCP;
-	std::vector<char> inDataTCP;
-	std::vector<unsigned char> check;
-
-	TCPClient tcp_client{ ip, port };
-	ComPort com_port;
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	while (loop)
-	{
-		if (runCardAuth["cardAuth15"] == 0) return 2000;
-		codeInstruction = response[9];
-		codeDevice = response[10];
-		switch (codeInstruction)
-		{
-		case MMCMD_OPEN:
-			std::cout << "MMCD_OPEN" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				tcp_client.open_tcp(ip, port);
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameNewHostMasterCall(serialNumber, 25);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PRINTER)
-			{
-				std::cout << "MDC_PRINTER" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameNewHostMasterCall(serialNumber, 3);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		case MMCMD_READ:
-			std::cout << "MMCD_READ" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				outDataTCP.clear();
-				Logger("Чтение данных TCP");
-				tcp_client.read_tcp(outDataTCP, GetSizeBuff(response));
-
-				for (char c : outDataTCP)
-				{
-					std::cout << std::hex << std::uppercase << int(c) << " ";
-				}
-				std::cout << std::endl;
-
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameReadTCPMasterCall(serialNumber, outDataTCP);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PINGINFO)
-			{
-				std::cout << "MDC_PINGINFO" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFramePingInfoMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.open_port();
-				Logger("-> " + resFramePax);
-				com_port.write_port(&resFramePax[0], resFramePax.length());
-				com_port.close_port();
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-
-				frame = GetFramePingInfoTwoMessageMasterCall();
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		case MMCMD_WRITE:
-			std::cout << "MMCD_WRITE" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				while (true)
-				{
-					if (response[0] == 0)
-					{
-						GetSerialNumberMessage(response, serialNumber);
-						GetDataForHost(response, 14, inDataTCP);
-						break;
-					}
-					else if (response[0] == 128)
-					{
-						GetSerialNumberMessage(response, serialNumber);
-						GetDataForHost(response, 14, inDataTCP);
-
-						resFramePax = "\u0006";
-
-						com_port.io_port(resFramePax, outDataPax);
-						response = GetBinaryOutData(outDataPax);
-
-						frame.clear();
-						outDataPax = "";
-						resFramePax = "";
-
-						GetDataForHost(response, 2, inDataTCP);
-
-						resFramePax = "\u0007";
-
-						com_port.io_port(resFramePax, outDataPax);
-						response = GetBinaryOutData(outDataPax);
-
-						frame.clear();
-						outDataPax = "";
-						resFramePax = "";
-					}
-					else
-					{
-						GetDataForHost(response, 2, inDataTCP);
-						break;
-					}
-				}
-
-				Logger("Запись данных TCP");
-				tcp_client.write_tcp(inDataTCP, inDataTCP.size());
-
-				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PRINTER)
-			{
-				std::cout << "MDC_PRINTER" << std::endl;
-				GetRowCheck(response, check);
-
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameWriteToCheckMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		case MMCMD_CLOSE:
-			std::cout << "MMCD_CLOSE" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameCloseTCPMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-				tcp_client.close_tcp();
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PRINTER)
-			{
-				std::cout << "MDC_PRINTER" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFraneCloseToCheckMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		default:
-			std::cout << "DEFAULT" << std::endl;
-			loop = false;
-			GetLastResponsePax(response, lastResponsePax, 9);
-
-			resFramePax = "\u0006";
-
-			com_port.io_port(resFramePax, outDataPax);
-			response = GetBinaryOutData(outDataPax);
-
-			while (true)
-			{
-				if (response[0] == 128)
-				{
-					GetLastResponsePax(response, lastResponsePax, 9);
-
-					resFramePax = "\u0006";
-
-					com_port.io_port(resFramePax, outDataPax);
-					response = GetBinaryOutData(outDataPax);
-
-					frame.clear();
-					outDataPax = "";
-					resFramePax = "";
-
-					GetLastResponsePax(response, lastResponsePax, 2);
-
-					resFramePax = "\u0007";
-
-					com_port.io_port(resFramePax, outDataPax);
-					response = GetBinaryOutData(outDataPax);
-
-					frame.clear();
-					outDataPax = "";
-					resFramePax = "";
-				}
-				else
-				{
-					GetLastResponsePax(response, lastResponsePax, 2);
-					char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
-					int RCode = *((unsigned short*)errCode);
-
-					if (RCode != 0)
-						return RCode;
-
-					break;
-				}
-			}
-			break;
-		}
-	}
-
-	check.push_back('\0');
-	std::string strCheck(check.begin(), check.end());
-	check.clear();
-	str = strCheck;
-
-	return 0;
-}
-
-int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str)
-{
-	int codeInstruction;
-	int codeDevice;
-	bool loop = true;
-	std::string ipString = GetIp(response);
-	std::wstring stemp = std::wstring(ipString.begin(), ipString.end());
-	LPCWSTR ip = stemp.c_str();
-	int port = GetPort(response);
-	std::vector<unsigned char> frame, serialNumber;
-	std::string outDataPax = "";
-	std::string resFramePax = "";
-	std::vector<char> outDataTCP;
-	std::vector<char> inDataTCP;
-	std::vector<unsigned char> check;
-
-	TCPClient tcp_client{ ip, port };
-	ComPort com_port;
-
-	while (loop)
-	{
-		codeInstruction = response[9];
-		codeDevice = response[10];
-		switch (codeInstruction)
-		{
-		case MMCMD_OPEN:
-			std::cout << "MMCD_OPEN" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				tcp_client.open_tcp(ip, port);
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameNewHostMasterCall(serialNumber, 25);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PRINTER)
-			{
-				std::cout << "MDC_PRINTER" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameNewHostMasterCall(serialNumber, 3);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		case MMCMD_READ:
-			std::cout << "MMCD_READ" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				outDataTCP.clear();
-				Logger("Чтение данных TCP");
-				tcp_client.read_tcp(outDataTCP, GetSizeBuff(response));
-
-				for (char c : outDataTCP)
-				{
-					std::cout << std::hex << std::uppercase << int(c) << " ";
-				}
-				std::cout << std::endl;
-
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameReadTCPMasterCall(serialNumber, outDataTCP);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PINGINFO)
-			{
-				std::cout << "MDC_PINGINFO" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFramePingInfoMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-
-				com_port.open_port();
-				Logger("-> " + resFramePax);
-				com_port.write_port(&resFramePax[0], resFramePax.length());
-				com_port.close_port();
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-
-				frame = GetFramePingInfoTwoMessageMasterCall();
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		case MMCMD_WRITE:
-			std::cout << "MMCD_WRITE" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				while (true)
-				{
-					if (response[0] == 0)
-					{
-						GetSerialNumberMessage(response, serialNumber);
-						GetDataForHost(response, 14, inDataTCP);
-						break;
-					}
-					else if (response[0] == 128)
-					{
-						GetSerialNumberMessage(response, serialNumber);
-						GetDataForHost(response, 14, inDataTCP);
-
-						resFramePax = "\u0006";
-
-						com_port.io_port(resFramePax, outDataPax);
-						response = GetBinaryOutData(outDataPax);
-
-						frame.clear();
-						outDataPax = "";
-						resFramePax = "";
-
-						GetDataForHost(response, 2, inDataTCP);
-
-						resFramePax = "\u0007";
-
-						com_port.io_port(resFramePax, outDataPax);
-						response = GetBinaryOutData(outDataPax);
-
-						frame.clear();
-						outDataPax = "";
-						resFramePax = "";
-					}
-					else
-					{
-						GetDataForHost(response, 2, inDataTCP);
-						break;
-					}
-				}
-
-				Logger("Запись данных TCP");
-				tcp_client.write_tcp(inDataTCP, inDataTCP.size());
-
-				frame = GetFrameWriteTCPMasterCall(serialNumber, inDataTCP.size());
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PRINTER)
-			{
-				std::cout << "MDC_PRINTER" << std::endl;
-				GetRowCheck(response, check);
-
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameWriteToCheckMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		case MMCMD_CLOSE:
-			std::cout << "MMCD_CLOSE" << std::endl;
-			if (codeDevice == MDC_LAN)
-			{
-				std::cout << "MDC_LAN" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFrameCloseTCPMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-				tcp_client.close_tcp();
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			else if (codeDevice == MDC_PRINTER)
-			{
-				std::cout << "MDC_PRINTER" << std::endl;
-				GetSerialNumberMessage(response, serialNumber);
-				frame = GetFraneCloseToCheckMasterCall(serialNumber);
-				GetFrameWithCrc16(frame);
-
-				resFramePax = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-				com_port.io_port(resFramePax, outDataPax);
-				response = GetBinaryOutData(outDataPax);
-
-				frame.clear();
-				serialNumber.clear();
-				outDataPax = "";
-				resFramePax = "";
-				outDataTCP.clear();
-				inDataTCP.clear();
-			}
-			break;
-		default:
-			std::cout << "DEFAULT" << std::endl;
-			loop = false;
-			GetLastResponsePax(response, lastResponsePax, 9);
-
-			resFramePax = "\u0006";
-
-			com_port.io_port(resFramePax, outDataPax);
-			response = GetBinaryOutData(outDataPax);
-
-			while (true)
-			{
-				if (response[0] == 128)
-				{
-					GetLastResponsePax(response, lastResponsePax, 9);
-
-					resFramePax = "\u0006";
-
-					com_port.io_port(resFramePax, outDataPax);
-					response = GetBinaryOutData(outDataPax);
-
-					frame.clear();
-					outDataPax = "";
-					resFramePax = "";
-
-					GetLastResponsePax(response, lastResponsePax, 2);
-
-					resFramePax = "\u0007";
-
-					com_port.io_port(resFramePax, outDataPax);
-					response = GetBinaryOutData(outDataPax);
-
-					frame.clear();
-					outDataPax = "";
-					resFramePax = "";
-				}
-				else
-				{
-					GetLastResponsePax(response, lastResponsePax, 2);
-					char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
-					int RCode = *((unsigned short*)errCode);
-
-					if (RCode != 0)
-						return RCode;
-
-					break;
-				}
-			}
-			break;
-		}
-	}
-
-	check.push_back('\0');
-	std::string strCheck(check.begin(), check.end());
-	check.clear();
-	str = strCheck;
-
-	return 0;
-}
-
-int PilotService::StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
-{
-	std::string outData = "";
-	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	GetFrameWithCrc16(frame);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-	ComPort com_port;
-	com_port.io_port(resFrame, outData);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	int result = BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str, runCardAuth);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	outData = "";
-	response.clear();
-	return result;
-}
-
-int PilotService::StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
-{
-	std::string outData = "";
-	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
-
-	GetFrameWithCrc16(frame);
-
-	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-	ComPort com_port;
-	com_port.io_port(resFrame, outData);
-
-	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	int result = BodyWorkPilotTrx(auth_answe, response, lastResponsePax, str);
-	outData = "";
-	response.clear();
-	return result;
-}
-
-int PilotService::StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
-{
-	std::string outData = "";
-	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	GetFrameWithCrc16(frame);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-	ComPort com_port;
-	com_port.io_port(resFrame, outData);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	int result = BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str, runCardAuth);
-	if (runCardAuth["cardAuth15"] == 0) return 2000;
-
-	outData = "";
-	response.clear();
-	return result;
-}
-
-int PilotService::StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
-{
-	std::string outData = "";
-	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
-
-	GetFrameWithCrc16(frame);
-
-	std::string resFrame = "\u0004\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-
-	ComPort com_port;
-	com_port.io_port(resFrame, outData);
-
-	std::vector<unsigned char> response = GetBinaryOutData(outData);
-	int result = BodyWorkPilotTrx(auth_answe.ans, response, lastResponsePax, str);
-	outData = "";
-	response.clear();
-	return result;
-}
-
 int PilotService::StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
 	std::string outData = "";
@@ -1359,12 +588,12 @@ int PilotService::StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::str
 
 	ComPort com_port;
 	std::string res_frame = sber_cmd.GetResFrame();
-	com_port.io_port(res_frame, outData);
+	com_port.IOPort(res_frame, outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	sber_cmd.SetBinaryOutData(outData);	
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	int result = BodyWorkPilotTrx(auth_answe, sber_cmd, str, runCardAuth);
+	int result = BodyWorkPilotTrx(sber_cmd, str, runCardAuth);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	outData = "";
@@ -1379,10 +608,10 @@ int PilotService::StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::str
 
 	ComPort com_port;
 	std::string res_frame = sber_cmd.GetResFrame();
-	com_port.io_port(res_frame, outData);
+	com_port.IOPort(res_frame, outData);
 
 	sber_cmd.SetBinaryOutData(outData);
-	int result = BodyWorkPilotTrx(auth_answe, sber_cmd, str);
+	int result = BodyWorkPilotTrx(sber_cmd, str);
 	outData = "";
 	return result;
 }
@@ -1396,12 +625,12 @@ int PilotService::StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::s
 
 	ComPort com_port;
 	std::string res_frame = sber_cmd.GetResFrame();
-	com_port.io_port(res_frame, outData);
+	com_port.IOPort(res_frame, outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	sber_cmd.SetBinaryOutData(outData);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
-	int result = BodyWorkPilotTrx(auth_answe.ans, sber_cmd, str, runCardAuth);
+	int result = BodyWorkPilotTrx(sber_cmd, str, runCardAuth);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 
 	outData = "";
@@ -1416,26 +645,24 @@ int PilotService::StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::s
 
 	ComPort com_port;
 	std::string res_frame = sber_cmd.GetResFrame();
-	com_port.io_port(res_frame, outData);
+	com_port.IOPort(res_frame, outData);
 
 	sber_cmd.SetBinaryOutData(outData);
-	int result = BodyWorkPilotTrx(auth_answe.ans, sber_cmd, str);
+	int result = BodyWorkPilotTrx(sber_cmd, str);
 	outData = "";
 	return result;
 }
 
-int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
+int PilotService::BodyWorkPilotTrx(SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
 	int code_instruction;
 	int code_device;
 	bool loop = true;
-	std::vector<unsigned char> response = sber_cmd.GetResponse();
-	std::string ip_string = GetIp(response);
+	std::string ip_string = GetIp(sber_cmd.GetResponse());
 	std::wstring stemp = std::wstring(ip_string.begin(), ip_string.end());
 	LPCWSTR ip = stemp.c_str();
-	int port = GetPort(response);
+	int port = GetPort(sber_cmd.GetResponse());
 	std::string out_data_pax = "";
-	std::string res_frame = "";
 	std::vector<char> out_data_tcp;
 	std::vector<char> in_data_tcp;
 	std::vector<unsigned char> check;
@@ -1456,12 +683,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 			if (code_device == MDC_LAN)
 			{
 				std::cout << "MDC_LAN" << std::endl;
-				tcp_client.open_tcp(ip, port);
+				tcp_client.OpenTCP(ip, port);
 
 				sber_cmd.RunNewHostMasterCall(25);
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);				
 
 				sber_cmd.GetFrame().clear();
@@ -1474,8 +700,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_PRINTER" << std::endl;
 				sber_cmd.RunNewHostMasterCall(3);
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1492,7 +717,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				out_data_tcp.clear();
 				Logger("Чтение данных TCP");
 				std::cout << "Чтение данныx TCP" << std::endl;
-				tcp_client.read_tcp(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
+				tcp_client.ReadTCP(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
 
 				for (char c : out_data_tcp)
 				{
@@ -1502,8 +727,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 
 				sber_cmd.RunReadTCPMasterCall(out_data_tcp);
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1516,11 +740,10 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_PINGINFO" << std::endl;
 				sber_cmd.RunPingInfoMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.open_port();
-				Logger("-> " + res_frame);
-				com_port.write_port(&res_frame[0], res_frame.length());
-				com_port.close_port();
+				com_port.OpenPort();
+				Logger("-> " + sber_cmd.GetResFrame());
+				com_port.WritePort(sber_cmd.GetResFrame().data(), sber_cmd.GetResFrame().length());
+				com_port.ClosePort();
 				
 				sber_cmd.GetFrame().clear();
 				out_data_pax = "";				
@@ -1529,8 +752,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 
 				sber_cmd.RunPingInfoTwoMessageMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 				
 				sber_cmd.GetFrame().clear();
@@ -1557,15 +779,13 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 						std::cout << "Попадание при условии response[0] == 128" << std::endl;
 						sber_cmd.SetFirstResponse();
 						GetDataForHost(sber_cmd.GetResponse(), 14, in_data_tcp);
-						res_frame = "\u0006";
-						com_port.io_port(res_frame, out_data_pax);
+						com_port.IOPort("\u0006", out_data_pax);
 						sber_cmd.SetBinaryOutData(out_data_pax);
 
 						out_data_pax = "";
 
 						GetDataForHost(sber_cmd.GetResponse(), 2, in_data_tcp);
-						res_frame = "\u0007";
-						com_port.io_port(res_frame, out_data_pax);
+						com_port.IOPort("\u0007", out_data_pax);
 						sber_cmd.SetBinaryOutData(out_data_pax);
 
 						out_data_pax = "";
@@ -1580,12 +800,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 
 				Logger("Запись данных TCP");
 				std::cout << "Запись данных TCP" << std::endl;
-				tcp_client.write_tcp(in_data_tcp, in_data_tcp.size());
+				tcp_client.WriteTCP(in_data_tcp, in_data_tcp.size());
 				sber_cmd.RunWriteTCPMasterCall(in_data_tcp.size());
 				sber_cmd.ClearFirstResponse();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1599,8 +818,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				GetRowCheck(sber_cmd.GetResponse(), check);
 				sber_cmd.RunWriteToCheckMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 				
 				sber_cmd.GetFrame().clear();
@@ -1616,10 +834,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_LAN" << std::endl;
 				sber_cmd.RunCloseTCPMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
-				tcp_client.close_tcp();
+				tcp_client.CloseTCP();
 
 				out_data_pax = "";
 				out_data_tcp.clear();
@@ -1630,8 +847,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_PRINTER" << std::endl;
 				sber_cmd.RunCloseToCheckMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1644,8 +860,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 			std::cout << "DEFAULT" << std::endl;
 			loop = false;
 			sber_cmd.SetLastResponse(9);
-			res_frame = "\u0006";
-			com_port.io_port(res_frame, out_data_pax);
+			com_port.IOPort("\u0006", out_data_pax);
 			sber_cmd.SetBinaryOutData(out_data_pax);
 
 			while (true)
@@ -1653,15 +868,13 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				if (sber_cmd.GetResponse()[0] == 128)
 				{
 					sber_cmd.SetLastResponse(9);
-					res_frame = "\u0006";
-					com_port.io_port(res_frame, out_data_pax);
+					com_port.IOPort("\u0006", out_data_pax);
 					sber_cmd.SetBinaryOutData(out_data_pax);
 					
 					out_data_pax = "";
 
 					sber_cmd.SetLastResponse(2);
-					res_frame = "\u0007";
-					com_port.io_port(res_frame, out_data_pax);
+					com_port.IOPort("\u0007", out_data_pax);
 					sber_cmd.SetBinaryOutData(out_data_pax);
 					
 					out_data_pax = "";
@@ -1690,18 +903,16 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 	return 0;
 }
 
-int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str)
+int PilotService::BodyWorkPilotTrx(SberCmd& sber_cmd, std::string& str)
 {
 	int code_instruction;
 	int code_device;
 	bool loop = true;
-	std::vector<unsigned char> response = sber_cmd.GetResponse();
-	std::string ip_string = GetIp(response);
+	std::string ip_string = GetIp(sber_cmd.GetResponse());
 	std::wstring stemp = std::wstring(ip_string.begin(), ip_string.end());
 	LPCWSTR ip = stemp.c_str();
-	int port = GetPort(response);
+	int port = GetPort(sber_cmd.GetResponse());
 	std::string out_data_pax = "";
-	std::string res_frame = "";
 	std::vector<char> out_data_tcp;
 	std::vector<char> in_data_tcp;
 	std::vector<unsigned char> check;
@@ -1720,12 +931,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 			if (code_device == MDC_LAN)
 			{
 				std::cout << "MDC_LAN" << std::endl;
-				tcp_client.open_tcp(ip, port);
+				tcp_client.OpenTCP(ip, port);
 
 				sber_cmd.RunNewHostMasterCall(25);
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				out_data_pax = "";
@@ -1737,8 +947,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_PRINTER" << std::endl;
 				sber_cmd.RunNewHostMasterCall(3);
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1755,7 +964,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				out_data_tcp.clear();
 				Logger("Чтение данных TCP");
 				std::cout << "Чтение данных TCP" << std::endl;
-				tcp_client.read_tcp(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
+				tcp_client.ReadTCP(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
 
 				for (char c : out_data_tcp)
 				{
@@ -1765,8 +974,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 
 				sber_cmd.RunReadTCPMasterCall(out_data_tcp);
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1779,11 +987,10 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_PINGINFO" << std::endl;
 				sber_cmd.RunPingInfoMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.open_port();
-				Logger("-> " + res_frame);
-				com_port.write_port(&res_frame[0], res_frame.length());
-				com_port.close_port();
+				com_port.OpenPort();
+				Logger("-> " + sber_cmd.GetResFrame());
+				com_port.WritePort(sber_cmd.GetResFrame().data(), sber_cmd.GetResFrame().length());
+				com_port.ClosePort();
 
 				sber_cmd.GetFrame().clear();
 				out_data_pax = "";
@@ -1792,8 +999,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 
 				sber_cmd.RunPingInfoTwoMessageMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1820,15 +1026,13 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 						std::cout << "Попадание при условии response[0] == 128" << std::endl;
 						sber_cmd.SetFirstResponse();
 						GetDataForHost(sber_cmd.GetResponse(), 14, in_data_tcp);
-						res_frame = "\u0006";
-						com_port.io_port(res_frame, out_data_pax);
+						com_port.IOPort("\u0006", out_data_pax);
 						sber_cmd.SetBinaryOutData(out_data_pax);
 
 						out_data_pax = "";
 
 						GetDataForHost(sber_cmd.GetResponse(), 2, in_data_tcp);
-						res_frame = "\u0007";
-						com_port.io_port(res_frame, out_data_pax);
+						com_port.IOPort("\u0007", out_data_pax);
 						sber_cmd.SetBinaryOutData(out_data_pax);
 
 						out_data_pax = "";
@@ -1843,13 +1047,12 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 
 				Logger("Запись данных TCP");
 				std::cout << "Запись даных TCP" << std::endl;
-				tcp_client.write_tcp(in_data_tcp, in_data_tcp.size());
+				tcp_client.WriteTCP(in_data_tcp, in_data_tcp.size());
 
 				sber_cmd.RunWriteTCPMasterCall(in_data_tcp.size());
 				sber_cmd.ClearFirstResponse();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1863,8 +1066,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				GetRowCheck(sber_cmd.GetResponse(), check);
 				sber_cmd.RunWriteToCheckMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1880,10 +1082,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_LAN" << std::endl;
 				sber_cmd.RunCloseTCPMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
-				tcp_client.close_tcp();
+				tcp_client.CloseTCP();
 
 				sber_cmd.GetFrame().clear();
 				out_data_pax = "";
@@ -1895,8 +1096,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				std::cout << "MDC_PRINTER" << std::endl;
 				sber_cmd.RunCloseToCheckMasterCall();
 				sber_cmd.SetResFrame("\u0004\u0002#");
-				res_frame = sber_cmd.GetResFrame();
-				com_port.io_port(res_frame, out_data_pax);
+				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
 				sber_cmd.SetBinaryOutData(out_data_pax);
 
 				sber_cmd.GetFrame().clear();
@@ -1909,8 +1109,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 			std::cout << "DEFAULT" << std::endl;
 			loop = false;
 			sber_cmd.SetLastResponse(9);
-			res_frame = "\u0006";
-			com_port.io_port(res_frame, out_data_pax);
+			com_port.IOPort("\u0006", out_data_pax);
 			sber_cmd.SetBinaryOutData(out_data_pax);
 
 			while (true)
@@ -1918,15 +1117,13 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 				if (sber_cmd.GetResponse()[0] == 128)
 				{
 					sber_cmd.SetLastResponse(9);
-					res_frame = "\u0006";
-					com_port.io_port(res_frame, out_data_pax);
+					com_port.IOPort("\u0006", out_data_pax);
 					sber_cmd.SetBinaryOutData(out_data_pax);
 
 					out_data_pax = "";
 
 					sber_cmd.SetLastResponse(2);
-					res_frame = "\u0007";
-					com_port.io_port(res_frame, out_data_pax);
+					com_port.IOPort("\u0007", out_data_pax);
 					sber_cmd.SetBinaryOutData(out_data_pax);
 
 					out_data_pax = "";
@@ -1953,4 +1150,28 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, 
 	str = strCheck;
 
 	return 0;
+}
+
+std::string PilotService::GetIp(const std::vector<unsigned char>& response)
+{
+	std::string ip = "";
+	for (int i = 16; i < 20; i++)
+	{
+		ip += std::to_string(response[i]);
+		ip += ".";
+	}
+	
+	ip.erase(ip.length() - 1, 1);
+	
+	std::cout << ip << std::endl;
+	
+	return ip;
+}
+
+int PilotService::GetPort(const std::vector<unsigned char>& response)
+{
+	unsigned char arrPort[] = { response[20], response[21] };
+	int port = *((unsigned short*)arrPort);
+	std::cout << std::dec << port << std::endl;
+	return port;
 }

@@ -1,8 +1,6 @@
 #include "pch.h" // use stdafx.h in Visual Studio 2017 and earlier
 #include "pilot_nt.h"
-#include "cmd_msb.h"
 #include "PacketProcessing.h"
-#include "base64.h"
 #include <iostream>
 #include "PilotService.h"
 #include <thread>

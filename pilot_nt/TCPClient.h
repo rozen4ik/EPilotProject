@@ -22,9 +22,9 @@ private:
 
 public:
 	TCPClient(LPCWSTR& ip, int& port);
-	DWORD WINAPI open_tcp(LPCWSTR& ip, int& port);
-	DWORD WINAPI read_tcp(std::vector<char>& buffer, int sizeBuff);
-	DWORD WINAPI write_tcp(std::vector<char>& buffer, int sizeBuff);
-	DWORD WINAPI close_tcp();
+	DWORD WINAPI OpenTCP(LPCWSTR& ip, int& port);
+	DWORD WINAPI ReadTCP(std::vector<char>& buffer, int sizeBuff);
+	DWORD WINAPI WriteTCP(std::vector<char>& buffer, int sizeBuff);
+	DWORD WINAPI CloseTCP();
 };
 

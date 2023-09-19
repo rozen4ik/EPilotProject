@@ -57,7 +57,7 @@ ComPort::ComPort()
     Logger(settings["Speed"]);
 }
 
-void ComPort::open_port()
+void ComPort::OpenPort()
 {
     std::cout << "Данные из ини файла получены" << std::endl;
     std::wstring nPort(settings["ComPort"].begin(), settings["ComPort"].end());
@@ -123,7 +123,7 @@ void ComPort::open_port()
     }
 }
 
-void ComPort::read_port(std::string& data)
+void ComPort::ReadPort(std::string& data)
 {
     DWORD iSize;
     char sReceivedChar = '\0';
@@ -145,7 +145,7 @@ void ComPort::read_port(std::string& data)
     }
 }
 
-void ComPort::write_port(char* data, const int size)
+void ComPort::WritePort(char* data, const int size)
 {
     DWORD dwSize = sizeof(*data);
     DWORD dwBytesWritten;
@@ -160,29 +160,29 @@ void ComPort::write_port(char* data, const int size)
     std::cout << dwSize << " - " << dwBytesWritten << std::endl;
 }
 
-void ComPort::close_port()
+void ComPort::ClosePort()
 {
     CloseHandle(hSerial);
 }
 
-void ComPort::io_port(std::string& inData, std::string& outData)
+void ComPort::IOPort(const std::string& inData, std::string& outData)
 {
-    open_port();
+    OpenPort();
     std::cout << "Отправлено в порт" << std::endl;
     Logger("-> " + inData);
     std::cout << inData << std::endl;
     while (outData == "")
     {
         PurgeComm(hSerial, PURGE_TXABORT);
-        write_port(&inData[0], inData.length());
+        WritePort(const_cast<char*>(inData.data()), inData.length());
         Logger("->");
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        read_port(outData);
+        ReadPort(outData);
         Logger("<-");
         std::cout << "Получено из порта" << std::endl;
     }
     std::cout << outData << std::endl;
     Logger("<- " + outData);
     std::cout << std::endl;
-    close_port();
+    ClosePort();
 }

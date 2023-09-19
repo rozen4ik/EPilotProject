@@ -5,99 +5,11 @@
 
 ComPort com_port;
 
-unsigned short ComputeChecksum(std::vector<unsigned char>& bytes)
-{	
-	const unsigned short poly = 0x1021;
-	unsigned short table[256];
-	unsigned short crc = 0xFFFF;
-
-	unsigned short temp, a;
-	for (int i = 0; i < 256; ++i)
-	{
-		temp = 0;
-		a = (unsigned short)(i << 8);
-		for (int j = 0; j < 8; ++j)
-		{
-			if (((temp ^ a) & 0x8000) != 0)
-			{
-				temp = (unsigned short)((temp << 1) ^ poly);
-			}
-			else
-			{
-				temp <<= 1;
-			}
-
-			a <<= 1;
-		}
-
-		table[i] = temp;
-	}
-
-	for (char it : bytes)
-	{
-		crc = (unsigned short)((crc << 8) ^ table[((crc >> 8) ^ (0xFF & it))]);
-	}
-	return crc;
-}
-
-void GetFrameWithCrc16(std::vector<unsigned char>& frame)
-{
-	unsigned short crc16 = ComputeChecksum(frame);
-	std::cout << "crc16: " << std::hex << crc16 << std::endl;
-	frame.push_back((unsigned char)crc16);
-	frame.push_back((unsigned char)(crc16 >> 8));	
-}
-
-std::vector<unsigned char> GetBinaryOutData(std::string& outData)
-{
-	std::erase(outData, '\u0002');
-	std::erase(outData, '\u0003');
-	std::erase(outData, '\u0004');
-	std::erase(outData, '#');
-
-	return base64_decode(outData);
-}
-
-std::string GetIp(std::vector<unsigned char>& response)
-{
-	std::string ip = "";
-	for (int i = 16; i < 20; i++)
-	{
-		ip += std::to_string(response[i]);
-		ip += ".";
-	}
-
-	ip.erase(ip.length() - 1, 1);
-
-	std::cout << ip << std::endl;
-
-	return ip;
-}
-
-int GetPort(std::vector<unsigned char>& response)
-{
-	unsigned char arrPort[] = { response[20], response[21] };
-	int port = *((unsigned short*)arrPort);
-	std::cout << std::dec << port << std::endl;
-	return port;
-}
-
-void GetSerialNumberMessage(std::vector<unsigned char>& response, std::vector<unsigned char>& serialNumber)
-{
-	for (int i = 5; i < 9; i++)
-	{
-		serialNumber.push_back(response[i]);		
-	}
-
-	serialNumber[3] = 0x80;
-}
-
 int GetSizeBuff(const std::vector<unsigned char>& response)
 {
 	unsigned char arrSizeBuff[] = { response[14], response[15] };
 	int sizeBuff = *((unsigned short*)arrSizeBuff);
-	Logger("Размер буфера: " + sizeBuff);
-	//std::cout << "Размер буфера: " << std::dec << sizeBuff << " байт" << std::endl;
+	Logger("Размер буффера: " + sizeBuff);
 	return sizeBuff;
 }
 
@@ -117,13 +29,7 @@ void GetRowCheck(const std::vector<unsigned char>& response, std::vector<unsigne
 	}
 }
 
-void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex)
-{
-	for (int i = startIndex; i < response.size() - 2; i++)
-		lastResponsePax.push_back(response[i]);
-}
-
-void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector<unsigned char>>& resRecCard, std::vector<unsigned char>& lastResponsePax)
+void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector<unsigned char>>& resRecCard, const std::vector<unsigned char>& lastResponsePax)
 {
 	int index = 0;
 
@@ -209,7 +115,7 @@ void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector
 	std::cout << std::endl;
 }
 
-void LoopForParsResponseResCard(std::vector<unsigned char>& buffer, std::vector<unsigned char>& lastResponsePax, int stopIter, int& index)
+void LoopForParsResponseResCard(std::vector<unsigned char>& buffer, const std::vector<unsigned char>& lastResponsePax, int stopIter, int& index)
 {
 	for (int i = 0; i < stopIter; i++)
 	{

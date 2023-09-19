@@ -1,9 +1,7 @@
 #pragma once
 
 #include "pilot_nt.h"
-#include "cmd_msb.h"
 #include "PacketProcessing.h"
-#include "base64.h"
 #include <iostream>
 #include <unordered_map>
 #include "ComPort.h"
@@ -56,17 +54,13 @@ private:
 	std::string str;
 	std::string rStr;
 
-	int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, std::string& str);
-	int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str);
-	int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str);
 	int StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
 	int StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str);
 	int StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
 	int StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str);
-	int BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str);
+	int BodyWorkPilotTrx(SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int BodyWorkPilotTrx(SberCmd& sber_cmd, std::string& str);
+	std::string GetIp(const std::vector<unsigned char>& response);
+	int GetPort(const std::vector<unsigned char>& response);
 };
 
