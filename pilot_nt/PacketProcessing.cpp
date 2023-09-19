@@ -92,7 +92,7 @@ void GetSerialNumberMessage(std::vector<unsigned char>& response, std::vector<un
 	serialNumber[3] = 0x80;
 }
 
-int GetSizeBuff(std::vector<unsigned char>& response)
+int GetSizeBuff(const std::vector<unsigned char>& response)
 {
 	unsigned char arrSizeBuff[] = { response[14], response[15] };
 	int sizeBuff = *((unsigned short*)arrSizeBuff);
@@ -101,7 +101,7 @@ int GetSizeBuff(std::vector<unsigned char>& response)
 	return sizeBuff;
 }
 
-void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::vector<char>& inDataTCP)
+void GetDataForHost(const std::vector<unsigned char>& response, int startIndex, std::vector<char>& inDataTCP)
 {
 	for (int i = startIndex; i < response.size() - 2; i++)
 	{
@@ -109,7 +109,7 @@ void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::v
 	}
 }
 
-void GetRowCheck(std::vector<unsigned char>& response, std::vector<unsigned char>& check)
+void GetRowCheck(const std::vector<unsigned char>& response, std::vector<unsigned char>& check)
 {
 	for (int i = 15; i < response.size() - 3; i++)
 	{

@@ -5,22 +5,51 @@ int PilotService::TestPinpad()
 {
 	Logger("\nTestPinpad");
 	ComPort com_port;
+	SberCmd sber_cmd;
 
 	std::string outData = "";
-	std::vector<unsigned char> frame = GetFrameGetReady(0x0000);
-
-	GetFrameWithCrc16(frame);
-
-	std::string resFrame = "\u0002#" + base64_encode(&frame[0], frame.size()) + "\u0003";
-	Logger("До чтение ini");
-	com_port.io_port(resFrame, outData);
-	Logger("После чтение ini");
-
-	std::vector<unsigned char> response = GetBinaryOutData(outData);
+	sber_cmd.RunGetReady(0x0000);
+	sber_cmd.SetResFrame("\u0002#");
+	std::string res_frame = sber_cmd.GetResFrame();
+	com_port.io_port(res_frame, outData);
+	sber_cmd.SetBinaryOutData(outData);
 	Logger("End Command");
 
-	return response[2];
+	return sber_cmd.GetResponse()[2];
 }
+
+//int PilotService::close_day(auth_answer* auth_answer, std::string& check)
+//{
+//	lastResponsePax.clear();
+//	check = "";
+//	TestPinpad();
+//	Logger("\nclose_day");
+//	StartWork(*auth_answer, lastResponsePax, str);	
+//
+//	rStr = str;
+//	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
+//	check = rStr;
+//	auth_answer->Check = check.data();
+//
+//	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+//	int RCode = *((unsigned short*)errCode);
+//
+//	for (int i = 0; i < 3; i++)
+//		auth_answer->RCode[i] = std::to_string(RCode)[i];
+//
+//	std::string result;
+//
+//	if (RCode == 0)
+//		result = "Одобрено";
+//	else
+//		result = "Отклонено";
+//
+//	for (int i = 0; i < 16; i++)
+//		auth_answer->AMessage[i] = result[i];
+//
+//	Logger("End Command");
+//	return RCode;
+//}
 
 int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 {
@@ -28,14 +57,15 @@ int PilotService::close_day(auth_answer* auth_answer, std::string& check)
 	check = "";
 	TestPinpad();
 	Logger("\nclose_day");
-	StartWork(*auth_answer, lastResponsePax, str);	
+	SberCmd sber_cmd;
+	StartWork(*auth_answer, sber_cmd, str);
 
 	rStr = str;
 	OemToCharBuffA(str.c_str(), &rStr[0], str.size());
 	check = rStr;
 	auth_answer->Check = check.data();
 
-	char errCode[] = { lastResponsePax[0], lastResponsePax[1] };
+	char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
 	int RCode = *((unsigned short*)errCode);
 
 	for (int i = 0; i < 3; i++)
@@ -612,9 +642,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 		codeDevice = response[10];
 		switch (codeInstruction)
 		{
-		case 1:
-			if (codeDevice == 25)
+		case MMCMD_OPEN:
+			std::cout << "MMCD_OPEN" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				tcp_client.open_tcp(ip, port);
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 25);
@@ -632,8 +664,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 3)
+			else if (codeDevice == MDC_PRINTER)
 			{
+				std::cout << "MDC_PRINTER" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 3);
 				GetFrameWithCrc16(frame);
@@ -651,9 +684,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				inDataTCP.clear();
 			}
 			break;
-		case 2:
-			if (codeDevice == 25)
+		case MMCMD_READ:
+			std::cout << "MMCD_READ" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				outDataTCP.clear();
 				Logger("Чтение данных TCP");
 				tcp_client.read_tcp(outDataTCP, GetSizeBuff(response));
@@ -680,8 +715,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 39)
+			else if (codeDevice == MDC_PINGINFO)
 			{
+				std::cout << "MDC_PINGINFO" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFramePingInfoMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -716,9 +752,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				inDataTCP.clear();
 			}
 			break;
-		case 3:
-			if (codeDevice == 25)
+		case MMCMD_WRITE:
+			std::cout << "MMCD_WRITE" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				while (true)
 				{
 					if (response[0] == 0)
@@ -777,8 +815,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 3)
+			else if (codeDevice == MDC_PRINTER)
 			{
+				std::cout << "MDC_PRINTER" << std::endl;
 				GetRowCheck(response, check);
 
 				GetSerialNumberMessage(response, serialNumber);
@@ -798,9 +837,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				inDataTCP.clear();
 			}
 			break;
-		case 4:
-			if (codeDevice == 25)
+		case MMCMD_CLOSE:
+			std::cout << "MMCD_CLOSE" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameCloseTCPMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -818,8 +859,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 3)
+			else if (codeDevice == MDC_PRINTER)
 			{
+				std::cout << "MDC_PRINTER" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFraneCloseToCheckMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -838,6 +880,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 			}
 			break;
 		default:
+			std::cout << "DEFAULT" << std::endl;
 			loop = false;
 			GetLastResponsePax(response, lastResponsePax, 9);
 
@@ -921,9 +964,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 		codeDevice = response[10];
 		switch (codeInstruction)
 		{
-		case 1:
-			if (codeDevice == 25)
+		case MMCMD_OPEN:
+			std::cout << "MMCD_OPEN" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				tcp_client.open_tcp(ip, port);
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 25);
@@ -941,8 +986,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 3)
+			else if (codeDevice == MDC_PRINTER)
 			{
+				std::cout << "MDC_PRINTER" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameNewHostMasterCall(serialNumber, 3);
 				GetFrameWithCrc16(frame);
@@ -960,9 +1006,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				inDataTCP.clear();
 			}
 			break;
-		case 2:
-			if (codeDevice == 25)
+		case MMCMD_READ:
+			std::cout << "MMCD_READ" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				outDataTCP.clear();
 				Logger("Чтение данных TCP");
 				tcp_client.read_tcp(outDataTCP, GetSizeBuff(response));
@@ -989,8 +1037,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 39)
+			else if (codeDevice == MDC_PINGINFO)
 			{
+				std::cout << "MDC_PINGINFO" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFramePingInfoMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -1026,9 +1075,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				inDataTCP.clear();
 			}
 			break;
-		case 3:
-			if (codeDevice == 25)
+		case MMCMD_WRITE:
+			std::cout << "MMCD_WRITE" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				while (true)
 				{
 					if (response[0] == 0)
@@ -1087,8 +1138,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 3)
+			else if (codeDevice == MDC_PRINTER)
 			{
+				std::cout << "MDC_PRINTER" << std::endl;
 				GetRowCheck(response, check);
 
 				GetSerialNumberMessage(response, serialNumber);
@@ -1108,9 +1160,11 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				inDataTCP.clear();
 			}
 			break;
-		case 4:
-			if (codeDevice == 25)
+		case MMCMD_CLOSE:
+			std::cout << "MMCD_CLOSE" << std::endl;
+			if (codeDevice == MDC_LAN)
 			{
+				std::cout << "MDC_LAN" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFrameCloseTCPMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -1128,8 +1182,9 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 				outDataTCP.clear();
 				inDataTCP.clear();
 			}
-			else if (codeDevice == 3)
+			else if (codeDevice == MDC_PRINTER)
 			{
+				std::cout << "MDC_PRINTER" << std::endl;
 				GetSerialNumberMessage(response, serialNumber);
 				frame = GetFraneCloseToCheckMasterCall(serialNumber);
 				GetFrameWithCrc16(frame);
@@ -1148,6 +1203,7 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 			}
 			break;
 		default:
+			std::cout << "DEFAULT" << std::endl;
 			loop = false;
 			GetLastResponsePax(response, lastResponsePax, 9);
 
@@ -1208,8 +1264,6 @@ int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, std::vector<unsigne
 
 int PilotService::StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
-	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe) << std::endl;
-	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
@@ -1235,8 +1289,6 @@ int PilotService::StartWork(auth_answer& auth_answe, std::vector<unsigned char>&
 
 int PilotService::StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
 {
-	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe) << std::endl;
-	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 
@@ -1256,8 +1308,6 @@ int PilotService::StartWork(auth_answer& auth_answe, std::vector<unsigned char>&
 
 int PilotService::StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
 {
-	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe.ans) << std::endl;
-	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.ans.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
@@ -1283,8 +1333,6 @@ int PilotService::StartWork(auth_answer14& auth_answe, std::vector<unsigned char
 
 int PilotService::StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str)
 {
-	std::cout << "2) PilotServce::close_day SizeOf argument: " << sizeof(auth_answe.ans) << std::endl;
-	std::cout << "2) PilotServce::close_day SizeOf ammessage: " << sizeof(auth_answe.ans.AMessage) << std::endl;
 	std::string outData = "";
 	std::vector<unsigned char> frame = GetFrameTrx(auth_answe);
 
@@ -1300,4 +1348,609 @@ int PilotService::StartWork(auth_answer14& auth_answe, std::vector<unsigned char
 	outData = "";
 	response.clear();
 	return result;
+}
+
+int PilotService::StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
+{
+	std::string outData = "";
+	sber_cmd.RunTrx(auth_answe);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+	sber_cmd.SetResFrame("\u0004\u0002#");
+
+	ComPort com_port;
+	std::string res_frame = sber_cmd.GetResFrame();
+	com_port.io_port(res_frame, outData);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	sber_cmd.SetBinaryOutData(outData);	
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+	int result = BodyWorkPilotTrx(auth_answe, sber_cmd, str, runCardAuth);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	outData = "";
+	return result;
+}
+
+int PilotService::StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str)
+{
+	std::string outData = "";
+	sber_cmd.RunTrx(auth_answe);
+	sber_cmd.SetResFrame("\u0004\u0002#");
+
+	ComPort com_port;
+	std::string res_frame = sber_cmd.GetResFrame();
+	com_port.io_port(res_frame, outData);
+
+	sber_cmd.SetBinaryOutData(outData);
+	int result = BodyWorkPilotTrx(auth_answe, sber_cmd, str);
+	outData = "";
+	return result;
+}
+
+int PilotService::StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
+{
+	std::string outData = "";
+	sber_cmd.RunTrx(auth_answe);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+	sber_cmd.SetResFrame("\u0004\u0002#");
+
+	ComPort com_port;
+	std::string res_frame = sber_cmd.GetResFrame();
+	com_port.io_port(res_frame, outData);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	sber_cmd.SetBinaryOutData(outData);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+	int result = BodyWorkPilotTrx(auth_answe.ans, sber_cmd, str, runCardAuth);
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	outData = "";
+	return result;;
+}
+
+int PilotService::StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str)
+{
+	std::string outData = "";
+	sber_cmd.RunTrx(auth_answe);
+	sber_cmd.SetResFrame("\u0004\u0002#");
+
+	ComPort com_port;
+	std::string res_frame = sber_cmd.GetResFrame();
+	com_port.io_port(res_frame, outData);
+
+	sber_cmd.SetBinaryOutData(outData);
+	int result = BodyWorkPilotTrx(auth_answe.ans, sber_cmd, str);
+	outData = "";
+	return result;
+}
+
+int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth)
+{
+	int code_instruction;
+	int code_device;
+	bool loop = true;
+	std::vector<unsigned char> response = sber_cmd.GetResponse();
+	std::string ip_string = GetIp(response);
+	std::wstring stemp = std::wstring(ip_string.begin(), ip_string.end());
+	LPCWSTR ip = stemp.c_str();
+	int port = GetPort(response);
+	std::string out_data_pax = "";
+	std::string res_frame = "";
+	std::vector<char> out_data_tcp;
+	std::vector<char> in_data_tcp;
+	std::vector<unsigned char> check;
+
+	TCPClient tcp_client{ ip, port };
+	ComPort com_port;
+	if (runCardAuth["cardAuth15"] == 0) return 2000;
+
+	while (loop)
+	{
+		if (runCardAuth["cardAuth15"] == 0) return 2000;		
+		code_instruction = sber_cmd.GetResponse()[9];
+		code_device = sber_cmd.GetResponse()[10];
+		switch (code_instruction)
+		{
+		case MMCMD_OPEN:
+			std::cout << "MMCMD_OPEN" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				tcp_client.open_tcp(ip, port);
+
+				sber_cmd.RunNewHostMasterCall(25);
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);				
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PRINTER)
+			{
+				std::cout << "MDC_PRINTER" << std::endl;
+				sber_cmd.RunNewHostMasterCall(3);
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		case MMCMD_READ:
+			std::cout << "MMCMD_READ" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				out_data_tcp.clear();
+				Logger("Чтение данных TCP");
+				std::cout << "Чтение данныx TCP" << std::endl;
+				tcp_client.read_tcp(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
+
+				for (char c : out_data_tcp)
+				{
+					std::cout << std::hex << std::uppercase << int(c) << " ";
+				}
+				std::cout << std::endl;
+
+				sber_cmd.RunReadTCPMasterCall(out_data_tcp);
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PINGINFO)
+			{
+				std::cout << "MDC_PINGINFO" << std::endl;
+				sber_cmd.RunPingInfoMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.open_port();
+				Logger("-> " + res_frame);
+				com_port.write_port(&res_frame[0], res_frame.length());
+				com_port.close_port();
+				
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";				
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+
+				sber_cmd.RunPingInfoTwoMessageMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+				
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		case MMCMD_WRITE:
+			std::cout << "MMCMD_WRITE" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				while (true)
+				{
+					if (sber_cmd.GetResponse()[0] == 0)
+					{	
+						std::cout << "Попадание при условии response[0] == 0" << std::endl;
+						GetDataForHost(sber_cmd.GetResponse(), 14, in_data_tcp);
+						break;
+					}
+					else if (sber_cmd.GetResponse()[0] == 128)
+					{
+						std::cout << "Попадание при условии response[0] == 128" << std::endl;
+						sber_cmd.SetFirstResponse();
+						GetDataForHost(sber_cmd.GetResponse(), 14, in_data_tcp);
+						res_frame = "\u0006";
+						com_port.io_port(res_frame, out_data_pax);
+						sber_cmd.SetBinaryOutData(out_data_pax);
+
+						out_data_pax = "";
+
+						GetDataForHost(sber_cmd.GetResponse(), 2, in_data_tcp);
+						res_frame = "\u0007";
+						com_port.io_port(res_frame, out_data_pax);
+						sber_cmd.SetBinaryOutData(out_data_pax);
+
+						out_data_pax = "";
+					}
+					else
+					{
+						std::cout << "Попадание при остальных условиях" << std::endl;
+						GetDataForHost(sber_cmd.GetResponse(), 2, in_data_tcp);
+						break;
+					}
+				}
+
+				Logger("Запись данных TCP");
+				std::cout << "Запись данных TCP" << std::endl;
+				tcp_client.write_tcp(in_data_tcp, in_data_tcp.size());
+				sber_cmd.RunWriteTCPMasterCall(in_data_tcp.size());
+				sber_cmd.ClearFirstResponse();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PRINTER)
+			{
+				std::cout << "MDC_PRINTER" << std::endl;
+				GetRowCheck(sber_cmd.GetResponse(), check);
+				sber_cmd.RunWriteToCheckMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+				
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		case MMCMD_CLOSE:
+			std::cout << "MMCMD_CLOSE" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				sber_cmd.RunCloseTCPMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+				tcp_client.close_tcp();
+
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PRINTER)
+			{
+				std::cout << "MDC_PRINTER" << std::endl;
+				sber_cmd.RunCloseToCheckMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		default:
+			std::cout << "DEFAULT" << std::endl;
+			loop = false;
+			sber_cmd.SetLastResponse(9);
+			res_frame = "\u0006";
+			com_port.io_port(res_frame, out_data_pax);
+			sber_cmd.SetBinaryOutData(out_data_pax);
+
+			while (true)
+			{
+				if (sber_cmd.GetResponse()[0] == 128)
+				{
+					sber_cmd.SetLastResponse(9);
+					res_frame = "\u0006";
+					com_port.io_port(res_frame, out_data_pax);
+					sber_cmd.SetBinaryOutData(out_data_pax);
+					
+					out_data_pax = "";
+
+					sber_cmd.SetLastResponse(2);
+					res_frame = "\u0007";
+					com_port.io_port(res_frame, out_data_pax);
+					sber_cmd.SetBinaryOutData(out_data_pax);
+					
+					out_data_pax = "";
+				}
+				else
+				{
+					sber_cmd.SetLastResponse(2);
+					char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
+					int RCode = *((unsigned short*)errCode);
+
+					if (RCode != 0)
+						return RCode;
+
+					break;
+				}
+			}
+			break;
+		}
+	}
+
+	check.push_back('\0');
+	std::string strCheck(check.begin(), check.end());
+	check.clear();
+	str = strCheck;
+
+	return 0;
+}
+
+int PilotService::BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str)
+{
+	int code_instruction;
+	int code_device;
+	bool loop = true;
+	std::vector<unsigned char> response = sber_cmd.GetResponse();
+	std::string ip_string = GetIp(response);
+	std::wstring stemp = std::wstring(ip_string.begin(), ip_string.end());
+	LPCWSTR ip = stemp.c_str();
+	int port = GetPort(response);
+	std::string out_data_pax = "";
+	std::string res_frame = "";
+	std::vector<char> out_data_tcp;
+	std::vector<char> in_data_tcp;
+	std::vector<unsigned char> check;
+
+	TCPClient tcp_client{ ip, port };
+	ComPort com_port;
+
+	while (loop)
+	{
+		code_instruction = sber_cmd.GetResponse()[9];
+		code_device = sber_cmd.GetResponse()[10];
+		switch (code_instruction)
+		{
+		case MMCMD_OPEN:
+			std::cout << "MMCMD_OPEN" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				tcp_client.open_tcp(ip, port);
+
+				sber_cmd.RunNewHostMasterCall(25);
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PRINTER)
+			{
+				std::cout << "MDC_PRINTER" << std::endl;
+				sber_cmd.RunNewHostMasterCall(3);
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		case MMCMD_READ:
+			std::cout << "MMCMD_READ" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				out_data_tcp.clear();
+				Logger("Чтение данных TCP");
+				std::cout << "Чтение данных TCP" << std::endl;
+				tcp_client.read_tcp(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
+
+				for (char c : out_data_tcp)
+				{
+					std::cout << std::hex << std::uppercase << int(c) << " ";
+				}
+				std::cout << std::endl;
+
+				sber_cmd.RunReadTCPMasterCall(out_data_tcp);
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PINGINFO)
+			{
+				std::cout << "MDC_PINGINFO" << std::endl;
+				sber_cmd.RunPingInfoMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.open_port();
+				Logger("-> " + res_frame);
+				com_port.write_port(&res_frame[0], res_frame.length());
+				com_port.close_port();
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+
+				sber_cmd.RunPingInfoTwoMessageMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		case MMCMD_WRITE:
+			std::cout << "MMCMD_WRITE" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				while (true)
+				{
+					if (sber_cmd.GetResponse()[0] == 0)
+					{
+						std::cout << "Попадание при условии response[0] == 0" << std::endl;
+						GetDataForHost(sber_cmd.GetResponse(), 14, in_data_tcp);
+						break;
+					}
+					else if (sber_cmd.GetResponse()[0] == 128)
+					{
+						std::cout << "Попадание при условии response[0] == 128" << std::endl;
+						sber_cmd.SetFirstResponse();
+						GetDataForHost(sber_cmd.GetResponse(), 14, in_data_tcp);
+						res_frame = "\u0006";
+						com_port.io_port(res_frame, out_data_pax);
+						sber_cmd.SetBinaryOutData(out_data_pax);
+
+						out_data_pax = "";
+
+						GetDataForHost(sber_cmd.GetResponse(), 2, in_data_tcp);
+						res_frame = "\u0007";
+						com_port.io_port(res_frame, out_data_pax);
+						sber_cmd.SetBinaryOutData(out_data_pax);
+
+						out_data_pax = "";
+					}
+					else
+					{
+						std::cout << "Попадание при остальных условиях" << std::endl;
+						GetDataForHost(sber_cmd.GetResponse(), 2, in_data_tcp);
+						break;
+					}
+				}
+
+				Logger("Запись данных TCP");
+				std::cout << "Запись даных TCP" << std::endl;
+				tcp_client.write_tcp(in_data_tcp, in_data_tcp.size());
+
+				sber_cmd.RunWriteTCPMasterCall(in_data_tcp.size());
+				sber_cmd.ClearFirstResponse();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PRINTER)
+			{
+				std::cout << "MDC_PRINTER" << std::endl;
+				GetRowCheck(sber_cmd.GetResponse(), check);
+				sber_cmd.RunWriteToCheckMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		case MMCMD_CLOSE:
+			std::cout << "MMCMD_CLOSE" << std::endl;
+			if (code_device == MDC_LAN)
+			{
+				std::cout << "MDC_LAN" << std::endl;
+				sber_cmd.RunCloseTCPMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+				tcp_client.close_tcp();
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			else if (code_device == MDC_PRINTER)
+			{
+				std::cout << "MDC_PRINTER" << std::endl;
+				sber_cmd.RunCloseToCheckMasterCall();
+				sber_cmd.SetResFrame("\u0004\u0002#");
+				res_frame = sber_cmd.GetResFrame();
+				com_port.io_port(res_frame, out_data_pax);
+				sber_cmd.SetBinaryOutData(out_data_pax);
+
+				sber_cmd.GetFrame().clear();
+				out_data_pax = "";
+				out_data_tcp.clear();
+				in_data_tcp.clear();
+			}
+			break;
+		default:
+			std::cout << "DEFAULT" << std::endl;
+			loop = false;
+			sber_cmd.SetLastResponse(9);
+			res_frame = "\u0006";
+			com_port.io_port(res_frame, out_data_pax);
+			sber_cmd.SetBinaryOutData(out_data_pax);
+
+			while (true)
+			{
+				if (sber_cmd.GetResponse()[0] == 128)
+				{
+					sber_cmd.SetLastResponse(9);
+					res_frame = "\u0006";
+					com_port.io_port(res_frame, out_data_pax);
+					sber_cmd.SetBinaryOutData(out_data_pax);
+
+					out_data_pax = "";
+
+					sber_cmd.SetLastResponse(2);
+					res_frame = "\u0007";
+					com_port.io_port(res_frame, out_data_pax);
+					sber_cmd.SetBinaryOutData(out_data_pax);
+
+					out_data_pax = "";
+				}
+				else
+				{
+					sber_cmd.SetLastResponse(2);
+					char errCode[] = { sber_cmd.GetLastResponse()[0], sber_cmd.GetLastResponse()[1] };
+					int RCode = *((unsigned short*)errCode);
+
+					if (RCode != 0)
+						return RCode;
+
+					break;
+				}
+			}
+			break;
+		}
+	}
+
+	check.push_back('\0');
+	std::string strCheck(check.begin(), check.end());
+	check.clear();
+	str = strCheck;
+
+	return 0;
 }
