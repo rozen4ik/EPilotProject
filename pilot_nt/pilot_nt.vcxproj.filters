@@ -30,13 +30,7 @@
     <ClInclude Include="resource.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="cmd_msb.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="PacketProcessing.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="base64.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="PilotService.h">
@@ -62,9 +56,6 @@
     <ClCompile Include="pilot_nt.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_msb.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="PacketProcessing.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -75,9 +66,6 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="TCPClient.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="base64.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="SberCmd.cpp">

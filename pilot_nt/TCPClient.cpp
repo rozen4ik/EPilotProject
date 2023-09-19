@@ -13,7 +13,7 @@ TCPClient::TCPClient(LPCWSTR& ip, int& port)
 	}
 }
 
-DWORD TCPClient::open_tcp(LPCWSTR& ip, int& port)
+DWORD TCPClient::OpenTCP(LPCWSTR& ip, int& port)
 {
 	this->ip = ip;
 	this->port = port;
@@ -32,7 +32,7 @@ DWORD TCPClient::open_tcp(LPCWSTR& ip, int& port)
 	return 0;
 }
 
-DWORD TCPClient::read_tcp(std::vector<char>& buffer, int sizeBuff)
+DWORD TCPClient::ReadTCP(std::vector<char>& buffer, int sizeBuff)
 {
 	int iResult;
 	char* buff = new char[sizeBuff];
@@ -65,7 +65,7 @@ DWORD TCPClient::read_tcp(std::vector<char>& buffer, int sizeBuff)
 	return 0;
 }
 
-DWORD TCPClient::write_tcp(std::vector<char>& buffer, int sizeBuff)
+DWORD TCPClient::WriteTCP(std::vector<char>& buffer, int sizeBuff)
 {
 	int iResult;
 	std::string str(buffer.begin(), buffer.end());
@@ -85,7 +85,7 @@ DWORD TCPClient::write_tcp(std::vector<char>& buffer, int sizeBuff)
 	return 0;
 }
 
-DWORD TCPClient::close_tcp()
+DWORD TCPClient::CloseTCP()
 {
 	shutdown(server, SD_BOTH);
 	closesocket(server);
