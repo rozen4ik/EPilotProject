@@ -4,7 +4,6 @@
 #include "base64.h"
 #include "pilot_nt.h"
 #include "cmd_msb.h"
-//#include <stdio.h>
 #include <vector>
 #include <tchar.h>
 #include <unordered_map>
@@ -22,9 +21,9 @@ std::vector<unsigned char> GetBinaryOutData(std::string& outData);
 std::string GetIp(std::vector<unsigned char>& response);
 int GetPort(std::vector<unsigned char>& response);
 void GetSerialNumberMessage(std::vector<unsigned char>& response, std::vector<unsigned char>& serialNumber);
-int GetSizeBuff(std::vector<unsigned char>& response);
-void GetDataForHost(std::vector<unsigned char>& response, int startIndex, std::vector<char>& inDataTCP);
-void GetRowCheck(std::vector<unsigned char>& response, std::vector<unsigned char>& check);
+int GetSizeBuff(const std::vector<unsigned char>& response);
+void GetDataForHost(const std::vector<unsigned char>& response, int startIndex, std::vector<char>& inDataTCP);
+void GetRowCheck(const std::vector<unsigned char>& response, std::vector<unsigned char>& check);
 void GetLastResponsePax(std::vector<unsigned char>& response, std::vector<unsigned char>& lastResponsePax, int startIndex);
 void ParsingResponseResCard(std::unordered_map<ResponseRCardContext, std::vector<unsigned char>>& resRecCard, std::vector<unsigned char>& lastResponsePax);
 void LoopForParsResponseResCard(std::vector<unsigned char>& buffer, std::vector<unsigned char>& lastResponsePax, int stopIter, int& index);

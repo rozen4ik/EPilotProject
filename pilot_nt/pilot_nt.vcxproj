@@ -153,6 +153,7 @@
     <ClInclude Include="pilot_nt.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SberCmd.h" />
     <ClInclude Include="TCPClient.h" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +170,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SberCmd.cpp" />
     <ClCompile Include="TCPClient.cpp" />
   </ItemGroup>
   <ItemGroup>

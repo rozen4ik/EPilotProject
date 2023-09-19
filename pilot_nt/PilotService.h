@@ -7,6 +7,22 @@
 #include <iostream>
 #include <unordered_map>
 #include "ComPort.h"
+#include "SberCmd.h"
+
+//  од инструкции
+#define MMCMD_OPEN 0x01 // Ц ќткрыть 
+#define MMCMD_READ 0x02 // Ц „итать данные 
+#define MMCMD_WRITE 0x03 // Ц ѕисать данные 
+#define MMCMD_CLOSE 0x04 // Ц «акрыть
+
+//  од устройства
+#define MDC_NULL 0 // Ц не используетс€ 
+#define MDC_PRINTER 3// Ц принтер 
+#define MDC_RTCLOCK 5// Ц проверка св€зи с ѕЁ¬ћ 
+#define MDC_LAN 25 // Ц сетевой интерфейс 
+#define MDC_PINGINFO 39 // Ц обмен информацией о состо€нии устройств 
+#define MDC_NOTIFY_REBOOT 41 // Ц уведомление о перезагрузке при обновлении ѕќ(REBOOT) 
+#define MDC_TIMER 45 // Ц передачи статусных сообщений
 
 class PilotService
 {
@@ -46,5 +62,11 @@ private:
 	int StartWork(auth_answer& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str);
 	int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
 	int StartWork(auth_answer14& auth_answe, std::vector<unsigned char>& lastResponsePax, std::string& str);
+	int StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str);
+	int StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str);
+	int BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
+	int BodyWorkPilotTrx(auth_answer& auth_answer, SberCmd& sber_cmd, std::string& str);
 };
 
