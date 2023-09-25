@@ -2,13 +2,10 @@
 
 #include <vector>
 #include "pilot_nt.h"
-#include <vector>
 #include <tchar.h>
 #include <unordered_map>
 #include <fstream>
 #include <iostream>
-#include <chrono>
-#include <thread>
 #include <cassert>
 #include "ComPort.h"
 #include "TCPClient.h"

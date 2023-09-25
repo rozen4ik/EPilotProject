@@ -3,7 +3,6 @@
 #include "PacketProcessing.h"
 #include <iostream>
 #include "PilotService.h"
-#include <thread>
 
 PilotService pService;
 

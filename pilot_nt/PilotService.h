@@ -46,7 +46,6 @@ public:
 	void Done(); ///< Деинициализация библиотеки pilot_nt.dll. 
 
 private:
-	std::vector<unsigned char> lastResponsePax;
 	std::unordered_map<CONTEXT_PTR, auth_answer14> dContext;
 	std::unordered_map<CONTEXT_PTR, std::vector<std::unordered_map<std::string, std::vector<unsigned char>>>> DTagExtraData;
 	std::unordered_map<ResponseRCardContext, std::vector<unsigned char>> resRecCard;
@@ -54,13 +53,30 @@ private:
 	std::string str;
 	std::string rStr;
 
-	int StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int StartWork(auth_answer& auth_answe, SberCmd& sber_cmd, std::string& str);
-	int StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int StartWork(auth_answer14& auth_answe, SberCmd& sber_cmd, std::string& str);
-	int BodyWorkPilotTrx(SberCmd& sber_cmd, std::string& str, std::unordered_map<std::string, int>& runCardAuth);
-	int BodyWorkPilotTrx(SberCmd& sber_cmd, std::string& str);
+	template<typename T> int StartWork(T&, SberCmd& sber_cmd);
+	int BodyWorkPilotTrx(SberCmd& sber_cmd);
 	std::string GetIp(const std::vector<unsigned char>& response);
 	int GetPort(const std::vector<unsigned char>& response);
 };
 
+template<typename T>
+inline int PilotService::StartWork(T& auth_answe, SberCmd& sber_cmd)
+{
+	std::string outData = "";
+	sber_cmd.RunTrx(auth_answe);
+	if (runCardAuth.find("cardAuth15") != runCardAuth.end() && runCardAuth["cardAuth15"] == 0) return 2000;
+	sber_cmd.SetResFrame("\u0004\u0002#");
+
+	ComPort com_port;
+	std::string res_frame = sber_cmd.GetResFrame();
+	com_port.IOPort(res_frame, outData);
+	if (runCardAuth.find("cardAuth15") != runCardAuth.end() && runCardAuth["cardAuth15"] == 0) return 2000;
+
+	sber_cmd.SetBinaryOutData(outData);
+	if (runCardAuth.find("cardAuth15") != runCardAuth.end() && runCardAuth["cardAuth15"] == 0) return 2000;
+	int result = BodyWorkPilotTrx(sber_cmd);
+	if (runCardAuth.find("cardAuth15") != runCardAuth.end() && runCardAuth["cardAuth15"] == 0) return 2000;
+
+	outData = "";
+	return result;
+}
