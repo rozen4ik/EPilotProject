@@ -53,7 +53,7 @@ private:
 	std::string str;
 	std::string rStr;
 
-	template<typename T> int StartWork(T&, SberCmd& sber_cmd);
+	template<typename T> int StartWork(T& auth_answe, SberCmd& sber_cmd);
 	int BodyWorkPilotTrx(SberCmd& sber_cmd);
 	std::string GetIp(const std::vector<unsigned char>& response);
 	int GetPort(const std::vector<unsigned char>& response);

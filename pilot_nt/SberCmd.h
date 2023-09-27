@@ -49,6 +49,8 @@ public:
 	void RunTrx(auth_answer14& auth_answer); ///<
 	void RunNewHostMasterCall(unsigned char TType); ///<
 	void RunReadTCPMasterCall(std::vector<char>& outDataTCP); ///<
+	void RunFirstReadTCPMasterCall(int number_message, std::vector<char>& out_data_tcp, int size_out_data_tcp);
+	void RunNextReadTCPMasterCall(int number_message, std::vector<char>& out_data_tcp);
 	void RunWriteTCPMasterCall(int sizeData); ///<
 	void RunCloseTCPMasterCall(); ///<
 	void RunPingInfoMasterCall(); ///<

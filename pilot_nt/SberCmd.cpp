@@ -433,9 +433,9 @@ void SberCmd::RunNewHostMasterCall(unsigned char TType)
 	SetFrameWithCrc16();
 }
 
-void SberCmd::RunReadTCPMasterCall(std::vector<char>& outDataTCP)
+void SberCmd::RunReadTCPMasterCall(std::vector<char>& out_data_tcp)
 {
-	int sizeData = outDataTCP.size();
+	int size_data = out_data_tcp.size();
 	frame =
 	{
 		0x00,
@@ -450,21 +450,73 @@ void SberCmd::RunReadTCPMasterCall(std::vector<char>& outDataTCP)
 		0x02,
 		0x19,
 		0x00,
-		(unsigned char)sizeData,
-		(unsigned char)(sizeData >> 8)
+		(unsigned char)size_data,
+		(unsigned char)(size_data >> 8)
 	};
 
 	SetSerialNumber();
 
-	for (char c : outDataTCP)
+	for (char c : out_data_tcp)
 		frame.push_back(c);
 
-	int sizeFrame = frame.size() - 2;
-	int sizeMessage = frame.size() - 9;
+	int size_frame = frame.size() - 2;
+	int size_message = frame.size() - 9;
 
-	frame[1] = (unsigned char)sizeFrame;
-	frame[3] = (unsigned char)sizeMessage;
-	frame[4] = (unsigned char)(sizeMessage >> 8);
+	frame[1] = (unsigned char)size_frame;
+	frame[3] = (unsigned char)size_message;
+	frame[4] = (unsigned char)(size_message >> 8);
+
+	SetFrameWithCrc16();
+}
+
+void SberCmd::RunFirstReadTCPMasterCall(int number_message, std::vector<char>& out_data_tcp, int size_out_data_tcp)
+{
+	frame =
+	{
+		(unsigned char)number_message,
+		0x0C,
+		0x00,
+		0x05,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x02,
+		0x19,
+		0x00,
+		(unsigned char)size_out_data_tcp,
+		(unsigned char)(size_out_data_tcp >> 8)
+	};
+
+	SetSerialNumber();
+
+	for (char c : out_data_tcp)
+		frame.push_back(c);
+
+	int size_frame = frame.size() - 2;
+	int size_message = frame.size() - 9;
+
+	frame[1] = (unsigned char)size_frame;
+	frame[3] = (unsigned char)size_message;
+	frame[4] = (unsigned char)(size_message >> 8);
+
+	SetFrameWithCrc16();
+}
+
+void SberCmd::RunNextReadTCPMasterCall(int number_message, std::vector<char>& out_data_tcp)
+{
+	frame =
+	{
+		(unsigned char)number_message,
+		0x26		
+	};
+
+	for (char c : out_data_tcp)
+		frame.push_back(c);
+
+	int size_frame = frame.size() - 2;
+	frame[1] = (unsigned char)size_frame;
 
 	SetFrameWithCrc16();
 }

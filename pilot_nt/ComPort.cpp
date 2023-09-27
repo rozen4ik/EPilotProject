@@ -171,9 +171,9 @@ void ComPort::IOPort(const std::string& inData, std::string& outData)
     std::cout << "Отправлено в порт" << std::endl;
     Logger("-> " + inData);
     std::cout << inData << std::endl;
+    PurgeComm(hSerial, PURGE_TXABORT | PURGE_RXABORT | PURGE_RXCLEAR | PURGE_TXCLEAR);
     while (outData == "")
-    {
-        PurgeComm(hSerial, PURGE_TXABORT);
+    {        
         WritePort(const_cast<char*>(inData.data()), inData.length());
         Logger("->");
         std::this_thread::sleep_for(std::chrono::milliseconds(500));

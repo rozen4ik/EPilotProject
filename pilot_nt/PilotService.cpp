@@ -58,10 +58,6 @@ int PilotService::card_authorize(const char* track2, auth_answer* auth_answer)
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 	Logger("\ncard_authorize");
 	SberCmd sber_cmd;
-	std::string track;
-
-	if (track2 != nullptr)
-		track = track2;
 
 	if (runCardAuth["cardAuth"] == 0) return 2000;
 	StartWork(*auth_answer, sber_cmd);
@@ -89,11 +85,7 @@ int PilotService::card_authorize15(const char* track2, auth_answer14& auth_answe
 	TestPinpad();
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	Logger("\ncard_authorize15");
-	SberCmd sber_cmd;
-	std::string track;
-
-	if (track2 != nullptr)
-		track = track2;
+	SberCmd sber_cmd;			
 
 	if (runCardAuth["cardAuth15"] == 0) return 2000;
 	StartWork(auth_answer.ans, sber_cmd);
@@ -650,18 +642,61 @@ int PilotService::BodyWorkPilotTrx(SberCmd& sber_cmd)
 				out_data_tcp.clear();
 				Logger("Чтение данных TCP");
 				std::cout << "Чтение данныx TCP" << std::endl;
-				tcp_client.ReadTCP(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));
-
-				for (char c : out_data_tcp)
+				tcp_client.ReadTCP(out_data_tcp, GetSizeBuff(sber_cmd.GetResponse()));;
+				
+				if (out_data_tcp.size() > 160)
 				{
-					std::cout << std::hex << std::uppercase << int(c) << " ";
-				}
-				std::cout << std::endl;
+					Logger("Количество байт больше 160");
+					int count_v = out_data_tcp.size() / 160;
+					if (out_data_tcp.size() % 160 != 0)
+						count_v++;
 
-				sber_cmd.RunReadTCPMasterCall(out_data_tcp);
-				sber_cmd.SetResFrame("\u0004\u0002#");
-				com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
-				sber_cmd.SetBinaryOutData(out_data_pax);
+
+					std::vector<std::vector<char>> messages(count_v);
+					int index = 0;
+
+					for (auto& msg : messages)
+					{
+						for (int i = index; i < 160 || i < out_data_tcp.size() - 1; i++)
+						{
+							msg.push_back(out_data_tcp[i]);
+							Logger(std::to_string(out_data_tcp[i]));
+							index++;
+						}						
+					}
+
+					Logger("Отправка нескольких сообщений о присланных данных от сбера");
+					for (int i = 0; i < messages.size(); i++)
+					{
+						if (i == 0)
+						{
+							sber_cmd.RunFirstReadTCPMasterCall(128, messages[i], out_data_tcp.size());
+							sber_cmd.SetResFrame("\u0004\u0002#");
+							com_port.OpenPort();
+							Logger("-> " + sber_cmd.GetResFrame());
+							com_port.WritePort(sber_cmd.GetResFrame().data(), sber_cmd.GetResFrame().length());
+							com_port.ClosePort();
+							sber_cmd.GetFrame().clear();
+						}							
+						else
+						{
+							sber_cmd.RunNextReadTCPMasterCall(i, messages[i]);
+							sber_cmd.SetResFrame("\u0004\u0002#");
+							com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
+							sber_cmd.SetBinaryOutData(out_data_pax);
+
+							sber_cmd.GetFrame().clear();
+						}							
+					}
+				}
+				else
+				{
+					Logger("Количество байт меньше 160");
+					sber_cmd.RunReadTCPMasterCall(out_data_tcp);
+					sber_cmd.SetResFrame("\u0004\u0002#");
+					com_port.IOPort(sber_cmd.GetResFrame(), out_data_pax);
+					sber_cmd.SetBinaryOutData(out_data_pax);
+				}
 
 				sber_cmd.GetFrame().clear();
 				out_data_pax = "";
